@@ -7,8 +7,8 @@ var {makeUpdateCellsRequest} = require('./converter.js');
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/sheets.googleapis.com-nodejs-quickstart.json
 var SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
-var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
-    process.env.USERPROFILE) + '/.credentials/';
+var TOKEN_DIR =
+  (process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE) + '/.credentials/';
 var TOKEN_PATH = TOKEN_DIR + 'sheets.googleapis.com-nodejs-quickstart.json';
 
 // Load client secrets from a local file.
@@ -58,12 +58,12 @@ function authorize(credentials, callback) {
 function getNewToken(oauth2Client, callback) {
   var authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
-    scope: SCOPES
+    scope: SCOPES,
   });
   console.log('Authorize this app by visiting this url: ', authUrl);
   var rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
   rl.question('Enter the code from that page here: ', function(code) {
     rl.close();
@@ -102,22 +102,25 @@ function storeToken(token) {
  */
 function listMajors(auth) {
   var sheets = google.sheets('v4');
-  sheets.spreadsheets.get({
-    auth: auth,
-    spreadsheetId: '1_tetSsXQLlTHUBqXQNJYbOjB25oCkzzYg7NNkMMwEbo', //'1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
-    ranges: 'Template',
-    includeGridData: true,
-  }, function(err, response) {
-    if (err) {
-      console.log('The API returned an error: ' + err);
-      return;
-    }
-    console.log(response);
-    console.log(response.sheets[0]);
-    console.log(response.sheets[0].data);
+  sheets.spreadsheets.get(
+    {
+      auth: auth,
+      spreadsheetId: '1_tetSsXQLlTHUBqXQNJYbOjB25oCkzzYg7NNkMMwEbo', //'1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
+      ranges: 'Template',
+      includeGridData: true,
+    },
+    function(err, response) {
+      if (err) {
+        console.log('The API returned an error: ' + err);
+        return;
+      }
+      console.log(response);
+      console.log(response.sheets[0]);
+      console.log(response.sheets[0].data);
 
-    fs.writeFileSync('response.json', JSON.stringify(response, null, 4));
-  });
+      fs.writeFileSync('response.json', JSON.stringify(response, null, 4));
+    },
+  );
 }
 
 function makeUpdateDimensionPropertiesRequest(sheetId, dimension, pixelSize) {
@@ -135,12 +138,12 @@ function makeUpdateDimensionPropertiesRequest(sheetId, dimension, pixelSize) {
 
 function makeUpdateDimensionPropertiesRequests(sheetId) {
   return [
-  {
-    updateDimensionProperties: makeUpdateDimensionPropertiesRequest(sheetId, 'COLUMNS', 29),
-  },
-  {
-    updateDimensionProperties: makeUpdateDimensionPropertiesRequest(sheetId, 'ROWS', 30),
-  },
+    {
+      updateDimensionProperties: makeUpdateDimensionPropertiesRequest(sheetId, 'COLUMNS', 29),
+    },
+    {
+      updateDimensionProperties: makeUpdateDimensionPropertiesRequest(sheetId, 'ROWS', 30),
+    },
   ];
 }
 
@@ -163,80 +166,90 @@ function uploadMap(auth) {
 
     requests = requests.concat(makeUpdateDimensionPropertiesRequests(SHEET_ID));
 
-    sheets.spreadsheets.batchUpdate({
-      auth,
-      spreadsheetId: SPREADSHEET_ID,
-      resource: {requests},
-    }, (err, response) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      console.log(response);
-    });
+    sheets.spreadsheets.batchUpdate(
+      {
+        auth,
+        spreadsheetId: SPREADSHEET_ID,
+        resource: {requests},
+      },
+      (err, response) => {
+        if (err) {
+          console.log(err);
+          return;
+        }
+        console.log(response);
+      },
+    );
   });
 }
 
 function dumpSheets(auth) {
   var sheets = google.sheets('v4');
-  sheets.spreadsheets.get({
-    auth,
-    spreadsheetId: SPREADSHEET_ID,
-  }, (err, response) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    fs.writeFile('response.json', JSON.stringify(response, null, 2));
-  });
-}
-
-function shrinkSheets(auth) {
-  var sheets = google.sheets('v4');
-  sheets.spreadsheets.get({
-    auth,
-    spreadsheetId: SPREADSHEET_ID,
-  }, (err, response) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    let requests = [];
-    response.sheets.forEach(sheet => {
-      if (sheet.properties.gridProperties.rowCount > 100) {
-        const sheetId = sheet.properties.sheetId;
-        requests.push({
-          updateSheetProperties: {
-            properties: {
-              sheetId,
-              gridProperties: {
-                rowCount: 100,
-              },
-            },
-            fields: 'gridProperties.rowCount',
-          },
-        });
-      }
-    });
-
-    //fs.writeFile('requests.json', JSON.stringify(requests, null, 2));
-    //return;
-
-    sheets.spreadsheets.batchUpdate({
+  sheets.spreadsheets.get(
+    {
       auth,
       spreadsheetId: SPREADSHEET_ID,
-      resource: {requests},
-    }, (err, response) => {
+    },
+    (err, response) => {
       if (err) {
         console.error(err);
         return;
       }
-
-      console.log(response);
-    });
-
-  });
+      fs.writeFile('response.json', JSON.stringify(response, null, 2));
+    },
+  );
 }
 
-function onAuth(auth) {
+function shrinkSheets(auth) {
+  var sheets = google.sheets('v4');
+  sheets.spreadsheets.get(
+    {
+      auth,
+      spreadsheetId: SPREADSHEET_ID,
+    },
+    (err, response) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      let requests = [];
+      response.sheets.forEach(sheet => {
+        if (sheet.properties.gridProperties.rowCount > 100) {
+          const sheetId = sheet.properties.sheetId;
+          requests.push({
+            updateSheetProperties: {
+              properties: {
+                sheetId,
+                gridProperties: {
+                  rowCount: 100,
+                },
+              },
+              fields: 'gridProperties.rowCount',
+            },
+          });
+        }
+      });
+
+      //fs.writeFile('requests.json', JSON.stringify(requests, null, 2));
+      //return;
+
+      sheets.spreadsheets.batchUpdate(
+        {
+          auth,
+          spreadsheetId: SPREADSHEET_ID,
+          resource: {requests},
+        },
+        (err, response) => {
+          if (err) {
+            console.error(err);
+            return;
+          }
+
+          console.log(response);
+        },
+      );
+    },
+  );
 }
+
+function onAuth(auth) {}

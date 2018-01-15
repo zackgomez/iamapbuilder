@@ -14,7 +14,6 @@ import {getToolDefinitions} from './tools.js';
 import type {Piece} from './Piece.js';
 import {makeButton} from './UIUtils.js';
 
-
 const VIEWPORT_WIDTH = 1280;
 const VIEWPORT_HEIGHT = 720;
 
@@ -24,7 +23,9 @@ renderer.backgroundColor = 0x777777;
 
 if (document.body) {
   document.body.appendChild(renderer.view);
-  renderer.view.addEventListener('contextmenu', (e) => { e.preventDefault(); });
+  renderer.view.addEventListener('contextmenu', e => {
+    e.preventDefault();
+  });
 }
 
 const interactionManager = renderer.plugins.interaction;
@@ -71,54 +72,32 @@ function getEdgeLayer(board) {
         if (edge === 'Clear') {
           return;
         } else if (edge === 'Blocking' || edge === 'Impassable') {
-          edgeGraphics.lineStyle(4, 0xFF0000, 1);
+          edgeGraphics.lineStyle(4, 0xff0000, 1);
         } else if (edge === 'Wall') {
           edgeGraphics.lineStyle(6, 0x000000, 1);
         }
 
-        const xdir = (dir === 'Right' ? 1 : 0);
-        const ydir = (dir === 'Down' ? 1 : 0);
+        const xdir = dir === 'Right' ? 1 : 0;
+        const ydir = dir === 'Down' ? 1 : 0;
 
         if (edge === 'Impassable') {
-          edgeGraphics.moveTo(
-            SCALE * x,
-            SCALE * y,
-          );
-          edgeGraphics.lineTo(
-            SCALE * (x + xdir * 1/6),
-            SCALE * (y + ydir * 1/6),
-          );
-          edgeGraphics.moveTo(
-            SCALE * (x + xdir * 2/6),
-            SCALE * (y + ydir * 2/6),
-          );
-          edgeGraphics.lineTo(
-            SCALE * (x + xdir * 4/6),
-            SCALE * (y + ydir * 4/6),
-          );
-          edgeGraphics.moveTo(
-            SCALE * (x + xdir * 5/6),
-            SCALE * (y + ydir * 5/6),
-          );
-          edgeGraphics.lineTo(
-            SCALE * (x + xdir * 6/6),
-            SCALE * (y + ydir * 6/6),
-          );
+          edgeGraphics.moveTo(SCALE * x, SCALE * y);
+          edgeGraphics.lineTo(SCALE * (x + xdir * 1 / 6), SCALE * (y + ydir * 1 / 6));
+          edgeGraphics.moveTo(SCALE * (x + xdir * 2 / 6), SCALE * (y + ydir * 2 / 6));
+          edgeGraphics.lineTo(SCALE * (x + xdir * 4 / 6), SCALE * (y + ydir * 4 / 6));
+          edgeGraphics.moveTo(SCALE * (x + xdir * 5 / 6), SCALE * (y + ydir * 5 / 6));
+          edgeGraphics.lineTo(SCALE * (x + xdir * 6 / 6), SCALE * (y + ydir * 6 / 6));
           return;
         }
 
         edgeGraphics.moveTo(SCALE * x, SCALE * y);
-        edgeGraphics.lineTo(
-          SCALE * (x + xdir),
-          SCALE * (y + ydir)
-        );
+        edgeGraphics.lineTo(SCALE * (x + xdir), SCALE * (y + ydir));
       });
     }
   }
 
   return edgeGraphics;
 }
-
 
 let nextFigureID = 1;
 function makeFigureID(): string {
@@ -141,13 +120,7 @@ function makeFigureView(id: string, type: string, color: any, x: number, y: numb
 
   return figure;
 }
-function makeFigure(
-  id: string,
-  type: string,
-  color: number,
-  cellX: number,
-  cellY: number,
-): Piece {
+function makeFigure(id: string, type: string, color: number, cellX: number, cellY: number): Piece {
   return {
     id,
     type,
@@ -162,13 +135,13 @@ let figures: {[key: string]: Piece} = {};
 
 function setupFigures() {
   figures = {};
-  const source = makeFigure(makeFigureID(), 'source', 0x0000FF, 2, 2);
+  const source = makeFigure(makeFigureID(), 'source', 0x0000ff, 2, 2);
   figures[source.id] = source;
 
-  const target = makeFigure(makeFigureID(), 'target', 0xDD1122, 2, 3);
+  const target = makeFigure(makeFigureID(), 'target', 0xdd1122, 2, 3);
   figures[target.id] = target;
 
-  _.times(4, (i) => {
+  _.times(4, i => {
     const fig = makeFigure(makeFigureID(), 'neutral', 0x333333, i, 0);
     figures[fig.id] = fig;
   });
@@ -177,9 +150,7 @@ function setupFigures() {
 function makeFigureLayer() {
   let layer = new PIXI.Container();
   _.each(figures, (figure, id) => {
-    const view = makeFigureView(
-      figure.id, figure.type, figure.color, figure.cellX, figure.cellY
-    );
+    const view = makeFigureView(figure.id, figure.type, figure.color, figure.cellX, figure.cellY);
     if (figure.dragPosition) {
       view.x = figure.dragPosition.x;
       view.y = figure.dragPosition.y;
@@ -211,11 +182,14 @@ function render() {
     root.addChild(makeUILayer(uiState));
   }
 
-  let mouseInfo = new PIXI.Text('Derp', new PIXI.TextStyle({
-    fontSize: 12,
-    stroke: '#00FF00',
-    fill: '#00FF00',
-  }));
+  let mouseInfo = new PIXI.Text(
+    'Derp',
+    new PIXI.TextStyle({
+      fontSize: 12,
+      stroke: '#00FF00',
+      fill: '#00FF00',
+    }),
+  );
   mouseInfo.text = `Mouse x: ${mousePosition.x} y: ${mousePosition.y}`;
 
   root.addChild(mouseInfo);
@@ -225,11 +199,11 @@ function render() {
 }
 
 function getToolContext(): ToolContext {
-  const cellPositionFromEvent = (e) => {
+  const cellPositionFromEvent = e => {
     return {
       x: Math.floor(e.data.global.x / SCALE),
       y: Math.floor(e.data.global.y / SCALE),
-    }
+    };
   };
   return {
     figures,
@@ -269,7 +243,6 @@ interactionManager.on('rightup', e => {
   renderIfNecessary();
 });
 
-
 const allTools = getToolDefinitions();
 
 let uiState: UIState = {
@@ -287,32 +260,23 @@ function setCurrentTool(newTool: Tool): void {
 function makeUILayer(state: UIState) {
   let layer = new PIXI.Container();
 
- const toolLayer = uiState.currentTool.renderLayer(
-   uiState,
-   getToolContext(),
- );
- if (toolLayer) {
-   layer.addChild(toolLayer);
- }
-
+  const toolLayer = uiState.currentTool.renderLayer(uiState, getToolContext());
+  if (toolLayer) {
+    layer.addChild(toolLayer);
+  }
 
   const BUTTON_SIZE = {width: 50, height: 30};
   let x = VIEWPORT_WIDTH - 10 - BUTTON_SIZE.width;
   let y = 10;
 
-  state.availableTools.forEach((tool) => {
+  state.availableTools.forEach(tool => {
     const selected = tool === state.currentTool;
     const style = {
       fill: selected ? '#00FF00' : '#FFFFFF',
-    }
-    const button = makeButton(
-      tool.getName(),
-      BUTTON_SIZE,
-      style,
-      () => {
-        setCurrentTool(tool);
-      },
-    );
+    };
+    const button = makeButton(tool.getName(), BUTTON_SIZE, style, () => {
+      setCurrentTool(tool);
+    });
     button.x = x;
     button.y = y;
     y += BUTTON_SIZE.height;

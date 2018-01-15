@@ -2,32 +2,29 @@ const fs = require('mz/fs');
 const _ = require('lodash');
 
 const EdgeTypeToBorderStyle = {
-  'Nothing': null,
-  'Wall': {
+  Nothing: null,
+  Wall: {
     style: 'SOLID_THICK',
     width: 3,
     color: {},
   },
-  'CellBoundary': {
+  CellBoundary: {
     style: 'DOTTED',
     width: 1,
     color: {
-      'red': 0.49803922,
-      'green': 0.49803922,
-      'blue': 0.49803922
+      red: 0.49803922,
+      green: 0.49803922,
+      blue: 0.49803922,
     },
   },
-  'TileBoundary': {
+  TileBoundary: {
     style: 'SOLID',
     width: 1,
-    color: {}
+    color: {},
   },
-  'Blocking': {
-  },
-  'Impassible': {
-  },
-  'Difficult': {
-  },
+  Blocking: {},
+  Impassible: {},
+  Difficult: {},
 };
 
 const InBoundsCellBGColor = {
@@ -47,7 +44,7 @@ const EDGE_ITERATOR = [
   {dy: 0, dx: 0, dir: 'h', name: 'top'},
   {dy: 0, dx: 1, dir: 'v', name: 'right'},
   {dy: 1, dx: 0, dir: 'h', name: 'bottom'},
-]
+];
 
 function getCell(map, x, y) {
   const rowValues = map.cells[y];

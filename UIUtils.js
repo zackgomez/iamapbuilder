@@ -8,7 +8,12 @@ export type Size = {
   height: number,
 };
 
-export function makeButton(title: string, size: Size, extraStyle: Object, onClick: (e: any) => void): any {
+export function makeButton(
+  title: string,
+  size: Size,
+  extraStyle: Object,
+  onClick: (e: any) => void,
+): any {
   let style = {
     align: 'center',
     fontSize: 16,
@@ -20,7 +25,7 @@ export function makeButton(title: string, size: Size, extraStyle: Object, onClic
   let button = new PIXI.Text(title, style);
   button.interactive = true;
   button.buttonMode = true;
-  button.on('pointerdown', (e) => {
+  button.on('pointerdown', e => {
     e.stopPropagation();
     onClick(e);
   });
