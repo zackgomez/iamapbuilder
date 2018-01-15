@@ -1,0 +1,62 @@
+{
+  "title": "Test Security Breach",
+  "type": "Agenda Side Mission",
+  "location": "Agent Blaise, ISB Interrogator (Wave 6)",
+  "rows": 3,
+  "cols": 3,
+  "cells": {
+    "1": {
+      "2": {
+        "inBounds": true,
+        "tileNumber": "25A"
+      }
+    },
+    "2": {
+      "0": {
+        "inBounds": true
+      },
+      "1": {
+        "inBounds": true
+      },
+      "2": {
+        "inBounds": true
+      }
+    }
+  },
+  "vertical_edges": {
+    "1": {
+      "2": "Wall",
+      "3": "CellBoundary"
+    },
+    "2": {
+      "0": "Wall",
+      "1": "CellBoundary",
+      "2": "TileBoundary",
+      "3": "CellBoundary"
+    },
+    "3": {
+      "0": "Wall",
+      "1": "CellBoundary",
+      "2": "TileBoundary",
+      "3": "CellBoundary"
+    }
+  },
+  "horizontal_edges": {
+    "1": {
+      "2": "Wall",
+      "3": "Wall"
+    },
+    "2": {
+      "0": "Wall",
+      "1": "Wall",
+      "2": "CellBoundary",
+      "3": "CellBoundary"
+    },
+    "3": {
+      "0": "CellBoundary",
+      "1": "CellBoundary",
+      "2": "CellBoundary",
+      "3": "CellBoundary"
+    }
+  }
+}

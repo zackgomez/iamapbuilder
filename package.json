@@ -1,0 +1,13 @@
+{
+  "name": "ia_mapbuilder",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Zack Gomez <zack.gomez@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "google-auth-library": "0.*",
+    "googleapis": "^24.0.0",
+    "lodash": "^4.17.4",
+    "mz": "^2.7.0"
+  }
+}

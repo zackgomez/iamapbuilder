@@ -1,0 +1,40 @@
+== Metadata
+Title (Reclamation)
+Type (Green Side Mission [Lando Calrissian])
+Location (The Bespin Gambit, page 8 [Wave 6])
+
+Tiles...
+
+
+== Cell
+inBounds: bool -> false
+
+startingPoint: bool -> false
+tileNumber: string -> ""
+
+difficultTerrain: bool -> false
+
+
+
+== Edge
+Nothing / <- default
+Wall /
+TileBoundary /
+CellBoundary /
+Blocking /
+Impassible /
+Difficult
+
+
+
+
+
+
+{
+  ...metadata
+  rows: int
+  cols: int
+  cells: {r: {c: Cell}}
+  horizontal_edges: {r: {c: Edge}}
+  vertical_edges: {r: {c: Edge}}
+}
