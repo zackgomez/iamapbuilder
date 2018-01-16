@@ -121,6 +121,28 @@ export default class Board {
     return dir === 'Horizontal' ? this.horizontalEdgeRows : this.verticalEdgeRows;
   }
 
+  applyEdgeRules(): void {
+  }
+
+  serialize(): string {
+    return JSON.stringify({
+      rows: this.height,
+      cols: this.width,
+      cells: this.cellRows,
+      horizontal_edges: this.horizontalEdgeRows,
+      vertical_edges: this.verticalEdgeRows,
+    });
+  }
+  static fromSerialized(serialized: string) {
+    const json = JSON.parse(serialized);
+    const board = new Board(json.cols, json.rows);
+    board.cellRows = json.cells;
+    board.verticalEdgeRows = json.vertical_edges;
+    board.horizontalEdgeRows = json.horizontal_edges;
+
+    return board;
+  }
+
   width: number;
   height: number;
   cellRows: {[row_index: number]: {[col_index: number]: Cell}};
