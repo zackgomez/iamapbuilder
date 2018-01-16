@@ -8,6 +8,8 @@ export type Size = {
   height: number,
 };
 
+declare var PIXI: any;
+
 export function makeButton(
   title: string,
   size: Size,
@@ -17,7 +19,7 @@ export function makeButton(
   let style = {
     align: 'center',
     fontSize: 16,
-    fill: '#FFFFFF',
+    fill: '#000000',
   };
 
   style = _.extend(style, extraStyle);

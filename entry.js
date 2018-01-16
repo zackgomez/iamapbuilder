@@ -3,23 +3,23 @@
 'use strict';
 
 import 'pixi.js';
-import Board, {emptyBoard, boardFromMapFile, cellToPoint} from './board.js';
-import type {Point} from './board.js';
+import Board from './board.js';
 import 'isomorphic-fetch';
 import _ from 'lodash';
 import nullthrows from 'nullthrows';
 
 import type {ToolEnum, UIState, Tool, ToolContext} from './tools.js';
 import {getToolDefinitions} from './tools.js';
-import type {Piece} from './Piece.js';
 import {makeButton} from './UIUtils.js';
 
-const VIEWPORT_WIDTH = 1280;
-const VIEWPORT_HEIGHT = 720;
+const VIEWPORT_WIDTH = 1440;
+const VIEWPORT_HEIGHT = 800;
+
+declare var PIXI: any;
 
 let renderer = new PIXI.autoDetectRenderer(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
-renderer.backgroundColor = 0x777777;
-//renderer.autoResize = true;
+renderer.backgroundColor = 0xFFFFFF;
+renderer.autoResize = true;
 
 if (document.body) {
   document.body.appendChild(renderer.view);
@@ -36,7 +36,7 @@ function getGridLayer(board: Board) {
   const width = board.getWidth();
   const height = board.getHeight();
   const grid = new PIXI.Graphics();
-  grid.lineStyle(2, 0x222222, 1);
+  grid.lineStyle(1, '0x999999', 1);
   for (let x = 0; x <= width; x++) {
     grid.moveTo(x * SCALE, 0);
     grid.lineTo(x * SCALE, height * SCALE);
@@ -46,47 +46,73 @@ function getGridLayer(board: Board) {
     grid.lineTo(width * SCALE, y * SCALE);
   }
 
-  grid.beginFill(0x000000, 1);
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
       const cell = board.getCell(x, y);
-      if (cell === 'OutOfBounds') {
+      if (cell.difficultTerrain) {
+        grid.beginFill(0xDBE5F1, 1);
+      } else {
+        grid.beginFill(0xEAF1DD, 1);
+      }
+      if (cell.inBounds) {
         grid.drawRect(x * SCALE, y * SCALE, SCALE, SCALE);
       }
     }
   }
   grid.endFill();
+
   return grid;
 }
 
-function getEdgeLayer(board) {
+function getEdgeLayer(board: Board) {
   let edgeGraphics = new PIXI.Graphics();
 
   for (let x = 0; x <= board.getWidth(); x++) {
     for (let y = 0; y <= board.getHeight(); y++) {
-      ['Down', 'Right'].forEach(dir => {
+      ['Vertical', 'Horizontal'].forEach(dir => {
         if (!board.isValidEdge(x, y, dir)) {
           return;
         }
         const edge = board.getEdge(x, y, dir);
-        if (edge === 'Clear') {
+        if (edge === 'Nothing') {
           return;
         } else if (edge === 'Blocking' || edge === 'Impassable') {
           edgeGraphics.lineStyle(4, 0xff0000, 1);
         } else if (edge === 'Wall') {
           edgeGraphics.lineStyle(6, 0x000000, 1);
+        } else if (edge === 'TileBoundary') {
+          edgeGraphics.lineStyle(2, 0x000000, 1);
+        } else if (edge === 'CellBoundary') {
+          edgeGraphics.lineStyle(2, 0x7F7F7F, 1);
+        } else if (edge === 'Difficult') {
+          edgeGraphics.lineStyle(4, 0x4F81BD, 1);
         }
 
-        const xdir = dir === 'Right' ? 1 : 0;
-        const ydir = dir === 'Down' ? 1 : 0;
+        const xdir = dir === 'Horizontal' ? 1 : 0;
+        const ydir = dir === 'Vertical' ? 1 : 0;
 
         if (edge === 'Impassable') {
           edgeGraphics.moveTo(SCALE * x, SCALE * y);
           edgeGraphics.lineTo(SCALE * (x + xdir * 1 / 6), SCALE * (y + ydir * 1 / 6));
+
           edgeGraphics.moveTo(SCALE * (x + xdir * 2 / 6), SCALE * (y + ydir * 2 / 6));
           edgeGraphics.lineTo(SCALE * (x + xdir * 4 / 6), SCALE * (y + ydir * 4 / 6));
           edgeGraphics.moveTo(SCALE * (x + xdir * 5 / 6), SCALE * (y + ydir * 5 / 6));
           edgeGraphics.lineTo(SCALE * (x + xdir * 6 / 6), SCALE * (y + ydir * 6 / 6));
+          return;
+        }
+        if (edge === 'CellBoundary') {
+          const N_DOTS = 5;
+          for (let i = 0; i < N_DOTS; i++) {
+            edgeGraphics.moveTo(
+                SCALE * (x + xdir * i / N_DOTS),
+                SCALE * (y + ydir * i / N_DOTS),
+                );
+            edgeGraphics.lineTo(
+                SCALE * (x + xdir * (i + 0.5) / N_DOTS),
+                SCALE * (y + ydir * (i + 0.5) / N_DOTS),
+                );
+          }
           return;
         }
 
@@ -97,68 +123,6 @@ function getEdgeLayer(board) {
   }
 
   return edgeGraphics;
-}
-
-let nextFigureID = 1;
-function makeFigureID(): string {
-  return 'id' + nextFigureID++;
-}
-function makeFigureView(id: string, type: string, color: any, x: number, y: number) {
-  let figure = new PIXI.Graphics();
-  figure.beginFill(color);
-  figure.drawCircle(0, 0, SCALE / 2);
-  figure.endFill();
-  figure.lineStyle(2, 0x000000, 1);
-  figure.drawCircle(0, 0, SCALE / 2);
-  figure.endFill();
-  figure.x = x * SCALE + SCALE / 2;
-  figure.y = y * SCALE + SCALE / 2;
-  figure.interactive = true;
-
-  figure.id = id;
-  figure.type = type;
-
-  return figure;
-}
-function makeFigure(id: string, type: string, color: number, cellX: number, cellY: number): Piece {
-  return {
-    id,
-    type,
-    color,
-    cellX,
-    cellY,
-    dragPosition: null,
-  };
-}
-
-let figures: {[key: string]: Piece} = {};
-
-function setupFigures() {
-  figures = {};
-  const source = makeFigure(makeFigureID(), 'source', 0x0000ff, 2, 2);
-  figures[source.id] = source;
-
-  const target = makeFigure(makeFigureID(), 'target', 0xdd1122, 2, 3);
-  figures[target.id] = target;
-
-  _.times(4, i => {
-    const fig = makeFigure(makeFigureID(), 'neutral', 0x333333, i, 0);
-    figures[fig.id] = fig;
-  });
-}
-
-function makeFigureLayer() {
-  let layer = new PIXI.Container();
-  _.each(figures, (figure, id) => {
-    const view = makeFigureView(figure.id, figure.type, figure.color, figure.cellX, figure.cellY);
-    if (figure.dragPosition) {
-      view.x = figure.dragPosition.x;
-      view.y = figure.dragPosition.y;
-    }
-    layer.addChild(view);
-  });
-
-  return layer;
 }
 
 let stage = null;
@@ -176,9 +140,6 @@ function render() {
   if (board) {
     root.addChild(getGridLayer(board));
     root.addChild(getEdgeLayer(board));
-    if (uiState.currentTool.showFigureLayer(uiState, getToolContext())) {
-      root.addChild(makeFigureLayer());
-    }
     root.addChild(makeUILayer(uiState));
   }
 
@@ -186,8 +147,8 @@ function render() {
     'Derp',
     new PIXI.TextStyle({
       fontSize: 12,
-      stroke: '#00FF00',
-      fill: '#00FF00',
+      stroke: '#000000',
+      fill: '#000000',
     }),
   );
   mouseInfo.text = `Mouse x: ${mousePosition.x} y: ${mousePosition.y}`;
@@ -206,7 +167,6 @@ function getToolContext(): ToolContext {
     };
   };
   return {
-    figures,
     SCALE,
     board: globalBoard,
     viewWidth: VIEWPORT_WIDTH,
@@ -289,27 +249,11 @@ function makeUILayer(state: UIState) {
 let globalBoard = null;
 function setBoard(board) {
   globalBoard = board;
-  setupFigures();
   uiState.needsRender = true;
 }
 
 (() => {
-  const board = emptyBoard(10, 10);
+  const board = Board.emptyBoard(26, 50);
   setBoard(board);
-  board.printBoard();
   render();
 })();
-
-/*
-fetch('/api/board').then(response => {
-  if (!response.ok) {
-    alert('Unable to fetch board');
-  }
-  return response.text();
-}).then(text => {
-  const board = boardFromMapFile(text);
-  board.clearBlocking();
-  board.printBoard();
-  setBoard(board);
-});
-*/

@@ -8,7 +8,8 @@ var {makeUpdateCellsRequest} = require('./converter.js');
 // at ~/.credentials/sheets.googleapis.com-nodejs-quickstart.json
 var SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 var TOKEN_DIR =
-  (process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE) + '/.credentials/';
+  (process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE) +
+  '/.credentials/';
 var TOKEN_PATH = TOKEN_DIR + 'sheets.googleapis.com-nodejs-quickstart.json';
 
 // Load client secrets from a local file.
@@ -106,7 +107,7 @@ function listMajors(auth) {
     {
       auth: auth,
       spreadsheetId: '1_tetSsXQLlTHUBqXQNJYbOjB25oCkzzYg7NNkMMwEbo', //'1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
-      ranges: 'Template',
+      ranges: 'Armed and Operational',
       includeGridData: true,
     },
     function(err, response) {
@@ -139,10 +140,18 @@ function makeUpdateDimensionPropertiesRequest(sheetId, dimension, pixelSize) {
 function makeUpdateDimensionPropertiesRequests(sheetId) {
   return [
     {
-      updateDimensionProperties: makeUpdateDimensionPropertiesRequest(sheetId, 'COLUMNS', 29),
+      updateDimensionProperties: makeUpdateDimensionPropertiesRequest(
+        sheetId,
+        'COLUMNS',
+        29,
+      ),
     },
     {
-      updateDimensionProperties: makeUpdateDimensionPropertiesRequest(sheetId, 'ROWS', 30),
+      updateDimensionProperties: makeUpdateDimensionPropertiesRequest(
+        sheetId,
+        'ROWS',
+        30,
+      ),
     },
   ];
 }
@@ -252,4 +261,6 @@ function shrinkSheets(auth) {
   );
 }
 
-function onAuth(auth) {}
+function onAuth(auth) {
+  listMajors(auth);
+}
