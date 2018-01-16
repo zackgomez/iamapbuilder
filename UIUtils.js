@@ -16,13 +16,12 @@ export function makeButton(
   extraStyle: Object,
   onClick: (e: any) => void,
 ): any {
-  let style = {
+  const style = {
     align: 'center',
     fontSize: 16,
     fill: '#000000',
+    ...extraStyle,
   };
-
-  style = _.extend(style, extraStyle);
 
   let button = new PIXI.Text(title, style);
   button.interactive = true;
