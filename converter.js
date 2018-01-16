@@ -22,15 +22,40 @@ const EdgeTypeToBorderStyle = {
     width: 1,
     color: {},
   },
-  Blocking: {},
-  Impassible: {},
-  Difficult: {},
+  Blocking: {
+    style: 'SOLID_MEDIUM',
+    width: 2,
+    color: {
+      red: 1,
+    },
+  },
+  Impassible: {
+    style: 'DASHED',
+    width: 1,
+    color: {
+      red: 1
+    }
+  },
+  Difficult: {
+    style: 'SOLID_MEDIUM',
+    width: 2,
+    color: {
+      red: 0.30980393,
+      green: 0.5058824,
+      blue: 0.7411765
+    }
+  },
 };
 
 const InBoundsCellBGColor = {
   red: 0.91764706,
   green: 0.94509804,
   blue: 0.8666667,
+};
+const DifficultCellBGColor = {
+  red: 0.85882354,
+  green: 0.8980392,
+  blue: 0.94509804
 };
 
 function getMapRange(map) {
@@ -92,7 +117,7 @@ function renderCell(map, row, col) {
       userEnteredFormat.backgroundColor = InBoundsCellBGColor;
     }
     if (cell.difficultTerrain) {
-      // TODO
+      userEnteredFormat.backgroundColor = DifficultCellBGColor;
     }
 
     if (cell.startingPoint) {
@@ -134,9 +159,10 @@ function renderCell(map, row, col) {
 
 function makeUpdateCellsRequest(sheetId, map) {
   const rows = [];
+  // HACK:
   for (let r = 0; r < map.rows; r++) {
     const values = [];
-    for (let c = 0; c < map.cols; c++) {
+    for (let c = 0; c < map.cols && c < 25; c++) {
       values.push(renderCell(map, r, c));
     }
     rows.push({values});

@@ -30,7 +30,7 @@ if (document.body) {
 
 const interactionManager = renderer.plugins.interaction;
 
-const SCALE = 50;
+const SCALE = 40;
 
 function getGridLayer(board: Board) {
   const width = board.getWidth();
@@ -76,7 +76,7 @@ function getEdgeLayer(board: Board) {
         const edge = board.getEdge(x, y, dir);
         if (edge === 'Nothing') {
           return;
-        } else if (edge === 'Blocking' || edge === 'Impassable') {
+        } else if (edge === 'Blocking' || edge === 'Impassible') {
           edgeGraphics.lineStyle(4, 0xff0000, 1);
         } else if (edge === 'Wall') {
           edgeGraphics.lineStyle(6, 0x000000, 1);
@@ -91,7 +91,7 @@ function getEdgeLayer(board: Board) {
         const xdir = dir === 'Horizontal' ? 1 : 0;
         const ydir = dir === 'Vertical' ? 1 : 0;
 
-        if (edge === 'Impassable') {
+        if (edge === 'Impassible') {
           edgeGraphics.moveTo(SCALE * x, SCALE * y);
           edgeGraphics.lineTo(SCALE * (x + xdir * 1 / 6), SCALE * (y + ydir * 1 / 6));
 
@@ -250,6 +250,7 @@ let globalBoard = null;
 function setBoard(board) {
   globalBoard = board;
   uiState.needsRender = true;
+  setTimeout(renderIfNecessary);
 }
 
 (() => {

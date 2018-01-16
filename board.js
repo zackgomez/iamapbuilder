@@ -107,12 +107,15 @@ export default class Board {
       dir,
     );
     const source = this.getEdgeRowsForDirection_(dir);
-    console.log('setEdge', x, y, dir, edge, source);
 
     if (!source[y]) {
       source[y] = {};
     }
-    source[y][x] = edge;
+    if (edge === defaultEdge()) {
+      delete source[y][x];
+    } else {
+      source[y][x] = edge;
+    }
   }
 
   getEdgeRowsForDirection_(
@@ -121,7 +124,78 @@ export default class Board {
     return dir === 'Horizontal' ? this.horizontalEdgeRows : this.verticalEdgeRows;
   }
 
+  resolveBoundaryEdge(cell: Cell): Edge {
+    if (cell.inBounds) {
+      return 'Wall';
+    }
+    return 'Nothing';
+  }
+  resolveEdge(a: Cell, b: Cell, existingEdge: Edge): Edge {
+    if (!a.inBounds && !b.inBounds) {
+      return 'Nothing';
+    }
+    if (a.inBounds != b.inBounds) {
+      return 'Wall';
+    }
+
+    // Both inBounds
+
+    const USER_DEFINED_EDGES : Array<Edge> = [
+      'TileBoundary',
+      'Impassible',
+      'Wall',
+      'Blocking',
+    ];
+    if (USER_DEFINED_EDGES.indexOf(existingEdge) != -1) {
+      return existingEdge;
+    }
+
+    if (a.difficultTerrain != b.difficultTerrain) {
+      return 'Difficult';
+    }
+
+    return 'CellBoundary';
+  }
+
   applyEdgeRules(): void {
+    // XXX: THIS CODE DOES NOT HANDLE RIGHT/BOTTOM boundary
+    for (let x = 0; x < this.getWidth(); x++) {
+      for (let y = 0; y < this.getHeight(); y++) {
+        const bottomRight = this.getCell(x, y);
+        if (x === 0) {
+          this.setEdge(x, y, 'Vertical', this.resolveBoundaryEdge(bottomRight));
+        } else {
+          this.setEdge(
+            x,
+            y,
+            'Vertical',
+            this.resolveEdge(
+              bottomRight,
+              this.getCell(x - 1, y),
+              this.getEdge(x, y, 'Vertical'),
+            ),
+          );
+        }
+        if (y === 0) {
+          this.setEdge(x, y, 'Horizontal', this.resolveBoundaryEdge(bottomRight));
+        } else {
+          this.setEdge(
+            x,
+            y,
+            'Horizontal',
+            this.resolveEdge(
+              bottomRight,
+              this.getCell(x, y - 1),
+              this.getEdge(x, y, 'Horizontal'),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  // Compact internal storage, removing redundant/default values
+  compact(): void {
   }
 
   serialize(): string {
@@ -133,7 +207,7 @@ export default class Board {
       vertical_edges: this.verticalEdgeRows,
     });
   }
-  static fromSerialized(serialized: string) {
+  static fromSerialized(serialized: string): Board {
     const json = JSON.parse(serialized);
     const board = new Board(json.cols, json.rows);
     board.cellRows = json.cells;
@@ -141,6 +215,9 @@ export default class Board {
     board.horizontalEdgeRows = json.horizontal_edges;
 
     return board;
+  }
+  static defaultBoard(): Board {
+    return new Board(26, 50);
   }
 
   width: number;

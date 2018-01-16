@@ -162,7 +162,7 @@ const SHEET_ID = '670131681';
 function uploadMap(auth) {
   var sheets = google.sheets('v4');
 
-  fs.readFile('demo_map.json', (err, data) => {
+  fs.readFile('downloaded.json', (err, data) => {
     if (err) {
       console.error(err);
       return;
@@ -262,5 +262,6 @@ function shrinkSheets(auth) {
 }
 
 function onAuth(auth) {
-  listMajors(auth);
+  //listMajors(auth);
+  uploadMap(auth);
 }

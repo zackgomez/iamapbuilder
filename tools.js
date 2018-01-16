@@ -8,6 +8,8 @@ import Board from './board';
 import type {Cell,  EdgeDirection, Edge} from './board';
 import {makeButton} from './UIUtils';
 
+import FileSaver from 'file-saver';
+
 export type ToolEnum = 'pointer' | 'terrain';
 
 declare var PIXI: any;
@@ -242,6 +244,32 @@ export class TerrainTool extends Tool {
   showFigureLayer(state: UIState, context: ToolContext): boolean {
     return false;
   }
+  onSave(state: UIState, context: ToolContext): void {
+    window.localStorage.setItem('mapbuilder.save', context.board.serialize());
+  }
+  onLoad(state: UIState, context: ToolContext): void {
+    const serialized = window.localStorage.getItem('mapbuilder.save');
+    if (serialized && confirm('Load board?')) {
+      context.setBoard(Board.fromSerialized(serialized));
+    }
+  }
+  onNew(state: UIState, context: ToolContext): void {
+    if (confirm('Create a new Board?')) {
+      context.setBoard(new Board(26, 50));
+    }
+  }
+  onDownload(state: UIState, context: ToolContext): void {
+    context.board.compact();
+    const serialized = context.board.serialize();
+    const blob = new Blob([serialized], {type: 'application/json;charset=utf-8'});
+    const filename = prompt('Filename?');
+    FileSaver.saveAs(blob, filename);
+  }
+  onComputeEdges(state: UIState, context: ToolContext): void {
+    const start = performance.now();
+    context.board.applyEdgeRules();
+    console.log('duration', performance.now() - start);
+  }
   renderLayer(state: UIState, context: ToolContext): any {
     const layer = new PIXI.Container();
 
@@ -262,15 +290,17 @@ export class TerrainTool extends Tool {
     };
 
     const BUTTONS = [
-      ['Cell', 'Difficult'],
       ['Cell', 'InBounds'],
+      ['Cell', 'Difficult'],
+
+      ['Edge', 'Wall'],
       ['Edge', 'TileBoundary'],
       ['Edge', 'CellBoundary'],
-      ['Edge', 'Difficult'],
-      ['Edge', 'Impassable'],
       ['Edge', 'Blocking'],
-      ['Edge', 'Wall'],
+      ['Edge', 'Impassible'],
+      ['Edge', 'Difficult'],
     ];
+    BUTTONS.reverse();
     BUTTONS.forEach(([subtool, type]) => {
       const title = subtool + type;
       addButton(title, () => {
@@ -286,10 +316,29 @@ export class TerrainTool extends Tool {
     y -= 2 * BUTTON_SIZE.height;
 
     const {board} = context;
-    const MAP_BUTTONS = [
+    const FILE_BUTTONS = [
+      ['New', () => this.onNew(state, context)],
+      ['Save', () => this.onSave(state, context)],
+      ['Load', () => this.onLoad(state, context)],
+      ['Download', () => this.onDownload(state, context)],
+      ['Print', () => console.log(context.board)],
     ];
-    MAP_BUTTONS.forEach(([title, onClick]) => {
-      addButton(title, onClick);
+    const MAP_BUTTONS = [
+      ['Compute Edges', () => this.onComputeEdges(state, context)],
+    ];
+
+    const SECTIONS = [
+      FILE_BUTTONS,
+      MAP_BUTTONS,
+    ];
+
+    SECTIONS.reverse();
+    SECTIONS.forEach(section => {
+      section.reverse();
+      section.forEach(([title, onClick]) => {
+        addButton(title, onClick);
+      });
+      y -= BUTTON_SIZE.height;
     });
 
     const candidateEdge = this.candidateEdge_;
