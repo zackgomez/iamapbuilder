@@ -265,10 +265,27 @@ export class TerrainTool extends Tool {
     const filename = prompt('Filename?');
     FileSaver.saveAs(blob, filename);
   }
+  onUpload(state: UIState, context: ToolContext): void {
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+      fileInput.addEventListener('change', () => this.onFileSelect(fileInput.files, context), {once: true});
+      fileInput.click();
+    }
+  }
+  onFileSelect(files: FileList, context: ToolContext): void {
+    if (files.length === 0) {
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const serialized = e.target.result;
+      const board = Board.fromSerialized(serialized);
+      context.setBoard(board);
+    };
+    reader.readAsText(files.item(0));
+  }
   onComputeEdges(state: UIState, context: ToolContext): void {
-    const start = performance.now();
     context.board.applyEdgeRules();
-    console.log('duration', performance.now() - start);
   }
   renderLayer(state: UIState, context: ToolContext): any {
     const layer = new PIXI.Container();
@@ -321,7 +338,8 @@ export class TerrainTool extends Tool {
       ['Save', () => this.onSave(state, context)],
       ['Load', () => this.onLoad(state, context)],
       ['Download', () => this.onDownload(state, context)],
-      ['Print', () => console.log(context.board)],
+      ['Upload', () => this.onUpload(state, context)],
+      //['Print', () => console.log(context.board)],
     ];
     const MAP_BUTTONS = [
       ['Compute Edges', () => this.onComputeEdges(state, context)],
