@@ -72,7 +72,7 @@ export class TerrainTool extends Tool {
   dragCellType_: ?CellType = null;
   dragEdgeType_: ?Edge = null;
 
-  cellType_: CellType = 'OutOfBounds';
+  cellType_: CellType = 'InBounds';
   candidateCell_: ?Point;
 
   edgeType_: Edge = 'Wall';
@@ -278,12 +278,20 @@ export class TerrainTool extends Tool {
     FileSaver.saveAs(blob, filename);
   }
   onUpload(state: UIState, context: ToolContext): void {
-    const fileInput = document.getElementById('fileInput');
+    const fileInput : HTMLInputElement = (document.getElementById('fileInput'): any);
     if (fileInput) {
+      let count = 0;
+      const cb = () => {
+        if (count++ !== 0) {
+          console.error('CB CALLED MULTIPLE TIMES');
+          return;
+        }
+        this.onFileSelect(fileInput.files, context);
+        fileInput.removeEventListener('change', cb);
+      };
       fileInput.addEventListener(
         'change',
-        () => this.onFileSelect(fileInput.files, context),
-        {once: true},
+        cb
       );
       fileInput.click();
     }

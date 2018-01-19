@@ -1,4 +1,4 @@
-const fs = require('mz/fs');
+/* @flow */
 const _ = require('lodash');
 
 const EdgeTypeToBorderStyle = {
@@ -31,7 +31,7 @@ const EdgeTypeToBorderStyle = {
   },
   Impassible: {
     style: 'DASHED',
-    width: 1,
+    width: 2,
     color: {
       red: 1,
     },
@@ -87,26 +87,6 @@ function getEdge(map, x, y, dir) {
   return null;
 }
 
-function borderStyleForEdge(edge) {
-  if (!edge) {
-    return null;
-  }
-  if (edge === 'Wall') {
-    return WallBorderStyle;
-  }
-  if (edge === 'TileBoundary') {
-  }
-  if (edge === 'CellBoundary') {
-    return CellBoundaryBorderStyle;
-  }
-  if (edge === 'Blocking') {
-  }
-  if (edge === 'Impassible') {
-  }
-  if (edge === 'Difficult') {
-  }
-}
-
 function renderCell(map, row, col) {
   let userEnteredValue = {};
   let userEnteredFormat = {};
@@ -125,22 +105,23 @@ function renderCell(map, row, col) {
     }
     if (cell.tileNumber) {
       userEnteredValue.stringValue = cell.tileNumber;
+      userEnteredFormat.horizontalAlignment = 'CENTER';
+      userEnteredFormat.verticalAlignment = 'MIDDLE';
     }
   }
 
   let renderedBorders = {};
-  for (const i in EDGE_ITERATOR) {
-    const desc = EDGE_ITERATOR[i];
+  EDGE_ITERATOR.forEach(desc => {
     const edge = getEdge(map, col + desc.dx, row + desc.dy, desc.dir);
     if (!edge) {
-      continue;
+      return;
     }
     const borderStyle = EdgeTypeToBorderStyle[edge];
     if (!borderStyle) {
-      continue;
+      return;
     }
     renderedBorders[desc.name] = borderStyle;
-  }
+  });
 
   if (!_.isEmpty(renderedBorders)) {
     userEnteredFormat.borders = renderedBorders;
@@ -157,7 +138,7 @@ function renderCell(map, row, col) {
   return ret;
 }
 
-function makeUpdateCellsRequest(sheetId, map) {
+function makeUpdateCellsRequest(sheetId: string, map: any) {
   const rows = [];
   // HACK:
   for (let r = 0; r < map.rows; r++) {

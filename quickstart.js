@@ -1,5 +1,7 @@
-var fs = require('fs');
-var readline = require('readline');
+/* @flow weak */
+
+var fs = require('mz/fs');
+var readline = require('mz/readline');
 var google = require('googleapis');
 var googleAuth = require('google-auth-library');
 var {makeUpdateCellsRequest} = require('./converter.js');
@@ -8,6 +10,7 @@ var {makeUpdateCellsRequest} = require('./converter.js');
 // at ~/.credentials/sheets.googleapis.com-nodejs-quickstart.json
 var SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 var TOKEN_DIR =
+// $FlowFixMe
   (process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE) +
   '/.credentials/';
 var TOKEN_PATH = TOKEN_DIR + 'sheets.googleapis.com-nodejs-quickstart.json';
@@ -43,7 +46,10 @@ function authorize(credentials, callback) {
       getNewToken(oauth2Client, callback);
     } else {
       oauth2Client.credentials = JSON.parse(token);
-      callback(oauth2Client);
+      callback(oauth2Client).catch(err => {
+        console.error(err);
+        throw err;
+      });
     }
   });
 }
@@ -159,37 +165,50 @@ function makeUpdateDimensionPropertiesRequests(sheetId) {
 const SPREADSHEET_ID = '1_tetSsXQLlTHUBqXQNJYbOjB25oCkzzYg7NNkMMwEbo';
 const SHEET_ID = '670131681';
 
-function uploadMap(auth) {
+async function getFilename(question: string): Promise<string> {
+  if (process.argv.length === 3) {
+    return process.argv[2];
+  }
+
+  var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  const filename = await rl.question(question);
+  rl.close();
+  return filename;
+}
+
+async function uploadMap(auth): Promise<void> {
   var sheets = google.sheets('v4');
 
-  fs.readFile('maps/jabbas_1_trespass.json', (err, data) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    const map = JSON.parse(data);
+  const filename = await getFilename('map filename?');
 
-    const updateCells = makeUpdateCellsRequest(SHEET_ID, map);
-    fs.writeFile('update.json', JSON.stringify(updateCells, null, 2));
-    let requests = [{updateCells}];
+  const data = await fs.readFile(filename);
 
-    requests = requests.concat(makeUpdateDimensionPropertiesRequests(SHEET_ID));
+  const map = JSON.parse(data);
 
-    sheets.spreadsheets.batchUpdate(
-      {
-        auth,
-        spreadsheetId: SPREADSHEET_ID,
-        resource: {requests},
-      },
-      (err, response) => {
-        if (err) {
-          console.log(err);
-          return;
-        }
-        console.log(response);
-      },
-    );
-  });
+  const updateCells = makeUpdateCellsRequest(SHEET_ID, map);
+
+  await fs.writeFile('update.json', JSON.stringify(updateCells, null, 2));
+  let requests = [{updateCells}];
+
+  requests = requests.concat(makeUpdateDimensionPropertiesRequests(SHEET_ID));
+
+  sheets.spreadsheets.batchUpdate(
+    {
+      auth,
+      spreadsheetId: SPREADSHEET_ID,
+      resource: {requests},
+    },
+    (err, response) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      console.log(response);
+    },
+  );
 }
 
 function dumpSheets(auth) {
@@ -261,7 +280,7 @@ function shrinkSheets(auth) {
   );
 }
 
-function onAuth(auth) {
+async function onAuth(auth) {
   //listMajors(auth);
-  uploadMap(auth);
+  await uploadMap(auth);
 }
