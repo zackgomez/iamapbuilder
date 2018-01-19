@@ -18,7 +18,7 @@ const VIEWPORT_HEIGHT = 800;
 declare var PIXI: any;
 
 let renderer = new PIXI.autoDetectRenderer(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
-renderer.backgroundColor = 0xFFFFFF;
+renderer.backgroundColor = 0xffffff;
 renderer.autoResize = true;
 
 if (document.body) {
@@ -31,6 +31,10 @@ if (document.body) {
 const interactionManager = renderer.plugins.interaction;
 
 const SCALE = 40;
+
+const TILE_NUMBER_TEXT_STYLE = new PIXI.TextStyle({
+  fontSize: 15,
+});
 
 function getGridLayer(board: Board) {
   const width = board.getWidth();
@@ -50,12 +54,20 @@ function getGridLayer(board: Board) {
     for (let y = 0; y < height; y++) {
       const cell = board.getCell(x, y);
       if (cell.difficultTerrain) {
-        grid.beginFill(0xDBE5F1, 1);
+        grid.beginFill(0xdbe5f1, 1);
       } else {
-        grid.beginFill(0xEAF1DD, 1);
+        grid.beginFill(0xeaf1dd, 1);
       }
       if (cell.inBounds) {
         grid.drawRect(x * SCALE, y * SCALE, SCALE, SCALE);
+      }
+      if (cell.tileNumber && cell.tileNumber.length > 0) {
+        const text = new PIXI.Text(cell.tileNumber, TILE_NUMBER_TEXT_STYLE);
+        text.anchor.x = 0.5;
+        text.anchor.y = 0.5;
+        text.x = x * SCALE + (SCALE / 2);
+        text.y = y * SCALE + (SCALE / 2);
+        grid.addChild(text);
       }
     }
   }
@@ -83,9 +95,9 @@ function getEdgeLayer(board: Board) {
         } else if (edge === 'TileBoundary') {
           edgeGraphics.lineStyle(2, 0x000000, 1);
         } else if (edge === 'CellBoundary') {
-          edgeGraphics.lineStyle(2, 0x7F7F7F, 1);
+          edgeGraphics.lineStyle(2, 0x7f7f7f, 1);
         } else if (edge === 'Difficult') {
-          edgeGraphics.lineStyle(4, 0x4F81BD, 1);
+          edgeGraphics.lineStyle(4, 0x4f81bd, 1);
         }
 
         const xdir = dir === 'Horizontal' ? 1 : 0;
@@ -105,13 +117,13 @@ function getEdgeLayer(board: Board) {
           const N_DOTS = 5;
           for (let i = 0; i < N_DOTS; i++) {
             edgeGraphics.moveTo(
-                SCALE * (x + xdir * i / N_DOTS),
-                SCALE * (y + ydir * i / N_DOTS),
-                );
+              SCALE * (x + xdir * i / N_DOTS),
+              SCALE * (y + ydir * i / N_DOTS),
+            );
             edgeGraphics.lineTo(
-                SCALE * (x + xdir * (i + 0.5) / N_DOTS),
-                SCALE * (y + ydir * (i + 0.5) / N_DOTS),
-                );
+              SCALE * (x + xdir * (i + 0.5) / N_DOTS),
+              SCALE * (y + ydir * (i + 0.5) / N_DOTS),
+            );
           }
           return;
         }
@@ -254,7 +266,13 @@ function setBoard(board) {
 }
 
 (() => {
-  const board = Board.emptyBoard(26, 50);
+  let board = Board.emptyBoard(26, 50);
+
+  const serialized = window.localStorage.getItem('mapbuilder.save');
+  if (serialized) {
+    board = Board.fromSerialized(serialized);
+  }
+
   setBoard(board);
   render();
 })();

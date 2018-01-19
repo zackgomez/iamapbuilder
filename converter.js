@@ -33,8 +33,8 @@ const EdgeTypeToBorderStyle = {
     style: 'DASHED',
     width: 1,
     color: {
-      red: 1
-    }
+      red: 1,
+    },
   },
   Difficult: {
     style: 'SOLID_MEDIUM',
@@ -42,8 +42,8 @@ const EdgeTypeToBorderStyle = {
     color: {
       red: 0.30980393,
       green: 0.5058824,
-      blue: 0.7411765
-    }
+      blue: 0.7411765,
+    },
   },
 };
 
@@ -55,7 +55,7 @@ const InBoundsCellBGColor = {
 const DifficultCellBGColor = {
   red: 0.85882354,
   green: 0.8980392,
-  blue: 0.94509804
+  blue: 0.94509804,
 };
 
 function getMapRange(map) {

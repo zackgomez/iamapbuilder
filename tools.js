@@ -5,7 +5,7 @@ import _ from 'lodash';
 import nullthrows from 'nullthrows';
 
 import Board from './board';
-import type {Cell,  EdgeDirection, Edge} from './board';
+import type {Cell, EdgeDirection, Edge} from './board';
 import {makeButton} from './UIUtils';
 
 import FileSaver from 'file-saver';
@@ -63,8 +63,7 @@ export class Tool {
   }
 }
 
-
-type TerrainSubtool = 'Cell' | 'Edge';
+type TerrainSubtool = 'Cell' | 'Edge' | 'TileNumber';
 type CellType = 'OutOfBounds' | 'InBounds' | 'Difficult';
 
 export class TerrainTool extends Tool {
@@ -129,7 +128,6 @@ export class TerrainTool extends Tool {
     }
 
     if (!context.board.isValidEdge(bestRet[0].x, bestRet[0].y, bestRet[1])) {
-      console.log('invalid edge', bestRet[0].x, bestRet[0].y, bestRet[1]);
       return null;
     }
 
@@ -164,6 +162,19 @@ export class TerrainTool extends Tool {
           return state;
         }
         this.dragEdgeType_ = this.edgeType_;
+        break;
+      case 'TileNumber':
+        //if (!this.candidateCell_) {
+        //return state;
+        //}
+        let text = prompt('Text:');
+        if (text === '') {
+          text = null;
+        }
+        board.setCell(cellPosition.x, cellPosition.y, {
+          ...board.getCell(cellPosition.x, cellPosition.y),
+          tileNumber: text,
+        });
         break;
     }
 
@@ -200,6 +211,7 @@ export class TerrainTool extends Tool {
     state.needsRender = true;
     switch (this.selectedSubtool_) {
       case 'Cell':
+      case 'TileNumber':
         this.candidateEdge_ = null;
         this.candidateCell_ = this.candidateCellFromEvent(event, context);
         break;
@@ -268,7 +280,11 @@ export class TerrainTool extends Tool {
   onUpload(state: UIState, context: ToolContext): void {
     const fileInput = document.getElementById('fileInput');
     if (fileInput) {
-      fileInput.addEventListener('change', () => this.onFileSelect(fileInput.files, context), {once: true});
+      fileInput.addEventListener(
+        'change',
+        () => this.onFileSelect(fileInput.files, context),
+        {once: true},
+      );
       fileInput.click();
     }
   }
@@ -291,7 +307,7 @@ export class TerrainTool extends Tool {
     const layer = new PIXI.Container();
 
     const BUTTON_SIZE = {
-      width: 100,
+      width: 150,
       height: 15,
     };
     const PADDING = 10;
@@ -306,49 +322,48 @@ export class TerrainTool extends Tool {
       y -= PADDING + BUTTON_SIZE.height;
     };
 
-    const BUTTONS = [
-      ['Cell', 'InBounds'],
-      ['Cell', 'Difficult'],
-
-      ['Edge', 'Wall'],
-      ['Edge', 'TileBoundary'],
-      ['Edge', 'CellBoundary'],
-      ['Edge', 'Blocking'],
-      ['Edge', 'Impassible'],
-      ['Edge', 'Difficult'],
-    ];
-    BUTTONS.reverse();
-    BUTTONS.forEach(([subtool, type]) => {
-      const title = subtool + type;
-      addButton(title, () => {
+    const makeSubtoolButtonItem = (
+      subtool: TerrainSubtool,
+      type: CellType | Edge,
+    ): [string, () => void] => {
+      const title = subtool + ' : ' + type;
+      const onClick = () => {
         this.selectedSubtool_ = subtool;
         if (this.selectedSubtool_ === 'Edge') {
           this.edgeType_ = (type: any);
         } else if (this.selectedSubtool_ === 'Cell') {
           this.cellType_ = (type: any);
         }
-      });
-    });
+      };
+      return [title, onClick];
+    };
 
-    y -= 2 * BUTTON_SIZE.height;
+    const CELL_BUTTONS = [
+      makeSubtoolButtonItem('Cell', 'InBounds'),
+      makeSubtoolButtonItem('Cell', 'Difficult'),
+      ['Cell : Tile Number', () => {
+        this.selectedSubtool_ = 'TileNumber';
+      }],
+    ];
+    const EDGE_BUTTONS = [
+      ['Edge', 'Wall'],
+      ['Edge', 'TileBoundary'],
+      ['Edge', 'CellBoundary'],
+      ['Edge', 'Blocking'],
+      ['Edge', 'Impassible'],
+      ['Edge', 'Difficult'],
+    ].map(([a, b]) => makeSubtoolButtonItem(a, b));
 
-    const {board} = context;
     const FILE_BUTTONS = [
       ['New', () => this.onNew(state, context)],
       ['Save', () => this.onSave(state, context)],
       ['Load', () => this.onLoad(state, context)],
       ['Download', () => this.onDownload(state, context)],
       ['Upload', () => this.onUpload(state, context)],
-      //['Print', () => console.log(context.board)],
     ];
-    const MAP_BUTTONS = [
-      ['Compute Edges', () => this.onComputeEdges(state, context)],
-    ];
+    const MAP_BUTTONS = [['Compute Edges', () => this.onComputeEdges(state, context)]];
 
-    const SECTIONS = [
-      FILE_BUTTONS,
-      MAP_BUTTONS,
-    ];
+    const SECTIONS = [FILE_BUTTONS, MAP_BUTTONS, CELL_BUTTONS, EDGE_BUTTONS];
 
     SECTIONS.reverse();
     SECTIONS.forEach(section => {
@@ -359,6 +374,7 @@ export class TerrainTool extends Tool {
       y -= BUTTON_SIZE.height;
     });
 
+    const {board} = context;
     const candidateEdge = this.candidateEdge_;
     if (candidateEdge) {
       let edgeOverlay = new PIXI.Graphics();

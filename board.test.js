@@ -5,7 +5,7 @@ test('Board serialization', () => {
 
   let serialized = board.serialize();
   let newBoard = Board.fromSerialized(serialized);
-  expect(newBoard.getWidth()).toBe(board.getWidth())
+  expect(newBoard.getWidth()).toBe(board.getWidth());
   expect(newBoard.getHeight()).toBe(board.getHeight());
 
   board.setCell(1, 2, {inBounds: true});

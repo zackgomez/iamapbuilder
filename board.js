@@ -7,11 +7,18 @@ import nullthrows from 'nullthrows';
 export type Cell = {
   inBounds?: boolean,
   startingPoint?: boolean,
-  tileNumber?: string,
+  tileNumber?: ?string,
   difficultTerrain?: boolean,
 };
 
-export type Edge = 'Nothing' | 'Wall' | 'TileBoundary' | 'CellBoundary' | 'Blocking' | 'Impassible' | 'Difficult';
+export type Edge =
+  | 'Nothing'
+  | 'Wall'
+  | 'TileBoundary'
+  | 'CellBoundary'
+  | 'Blocking'
+  | 'Impassible'
+  | 'Difficult';
 export type EdgeDirection = 'Horizontal' | 'Vertical';
 
 function defaultCell(): Cell {
@@ -140,7 +147,7 @@ export default class Board {
 
     // Both inBounds
 
-    const USER_DEFINED_EDGES : Array<Edge> = [
+    const USER_DEFINED_EDGES: Array<Edge> = [
       'TileBoundary',
       'Impassible',
       'Wall',
@@ -195,8 +202,7 @@ export default class Board {
   }
 
   // Compact internal storage, removing redundant/default values
-  compact(): void {
-  }
+  compact(): void {}
 
   serialize(): string {
     return JSON.stringify({

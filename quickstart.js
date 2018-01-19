@@ -162,7 +162,7 @@ const SHEET_ID = '670131681';
 function uploadMap(auth) {
   var sheets = google.sheets('v4');
 
-  fs.readFile('downloaded.json', (err, data) => {
+  fs.readFile('maps/jabbas_1_trespass.json', (err, data) => {
     if (err) {
       console.error(err);
       return;
