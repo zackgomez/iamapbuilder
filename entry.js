@@ -10,7 +10,7 @@ import nullthrows from 'nullthrows';
 
 import type {ToolEnum, UIState, Tool, ToolContext} from './tools.js';
 import {getToolDefinitions} from './tools.js';
-import {makeButton} from './UIUtils.js';
+import {makeButton, buttonizeText} from './UIUtils.js';
 
 const VIEWPORT_WIDTH = 1440;
 const VIEWPORT_HEIGHT = 800;
@@ -235,6 +235,21 @@ const MAP_INFO_TEXT_STYLE = new PIXI.TextStyle({
   wordWrap: true,
   wordWrapWidth: MAP_INFO_TEXT_WIDTH,
 });
+function onSetMapName(): void {
+  const name = prompt('Map Name') || '';
+  globalBoard.setName(name);
+  uiState.needsRender = true;
+}
+function onSetMapType(): void {
+  const type = prompt('Map Type') || '';
+  globalBoard.setMapType(type);
+  uiState.needsRender = true;
+}
+function onSetBriefingLocation(): void {
+  const briefingLocation = prompt('Briefing Location') || '';
+  globalBoard.setBriefingLocation(briefingLocation);
+  uiState.needsRender = true;
+}
 function makeUILayer(state: UIState, board: Board) {
   let layer = new PIXI.Container();
 
@@ -243,32 +258,43 @@ function makeUILayer(state: UIState, board: Board) {
     layer.addChild(toolLayer);
   }
 
-  const mapInfoString = `Map Name: ${board.getName()}\n\nBriefing Location: ${board.getBriefingLocation()}`;
-  const mapInfoText = new PIXI.Text(mapInfoString, MAP_INFO_TEXT_STYLE);
-  mapInfoText.x = VIEWPORT_WIDTH - MAP_INFO_TEXT_WIDTH;
-  mapInfoText.y = 10;
-
-  layer.addChild(mapInfoText);
-
-  /*
-  const BUTTON_SIZE = {width: 50, height: 30};
-  let x = VIEWPORT_WIDTH - 10 - BUTTON_SIZE.width;
+  let x = VIEWPORT_WIDTH - MAP_INFO_TEXT_WIDTH;
   let y = 10;
-
-  state.availableTools.forEach(tool => {
-    const selected = tool === state.currentTool;
-    const style = {
-      fill: selected ? '#000000' : '#FFFFFF',
-    };
-    const button = makeButton(tool.getName(), BUTTON_SIZE, style, () => {
-      setCurrentTool(tool);
-    });
-    button.x = x;
-    button.y = y;
-    y += BUTTON_SIZE.height;
-    layer.addChild(button);
+  const mapNameText = new PIXI.Text(
+    `Map Name: ${board.getName()}`,
+    MAP_INFO_TEXT_STYLE,
+  );
+  mapNameText.x = x;
+  mapNameText.y = y;
+  y += 50;
+  buttonizeText(mapNameText, () => {
+    onSetMapName();
   });
-  */
+  layer.addChild(mapNameText);
+
+  const mapTypeText = new PIXI.Text(
+    `Map Type: ${board.getMapType()}`,
+    MAP_INFO_TEXT_STYLE,
+  );
+  mapTypeText.x = x;
+  mapTypeText.y = y;
+  y += 50;
+  buttonizeText(mapTypeText, () => {
+    onSetMapType();
+  });
+  layer.addChild(mapTypeText);
+
+  const briefingLocationText = new PIXI.Text(
+    `Briefing Location: ${board.getBriefingLocation()}`,
+    MAP_INFO_TEXT_STYLE,
+  );
+  briefingLocationText.x = x;
+  briefingLocationText.y = y;
+  y += 30;
+  buttonizeText(briefingLocationText, () => {
+    onSetBriefingLocation();
+  });
+  layer.addChild(briefingLocationText);
 
   return layer;
 }

@@ -312,14 +312,6 @@ export class TerrainTool extends Tool {
   onComputeEdges(state: UIState, context: ToolContext): void {
     context.board.applyEdgeRules();
   }
-  onSetMapName(state: UIState, context: ToolContext): void {
-    const name = prompt('Map Name') || '';
-    context.board.setName(name);
-  }
-  onSetBriefingLocation(state: UIState, context: ToolContext): void {
-    const briefingLocation = prompt('Briefing Location') || '';
-    context.board.setBriefingLocation(briefingLocation);
-  }
   renderLayer(state: UIState, context: ToolContext): any {
     const layer = new PIXI.Container();
 
@@ -383,8 +375,6 @@ export class TerrainTool extends Tool {
     ];
     const MAP_BUTTONS = [
       ['Compute Edges', () => this.onComputeEdges(state, context)],
-      ['Set Map Name', () => this.onSetMapName(state, context)],
-      ['Set Briefing Location', () => this.onSetBriefingLocation(state, context)],
     ];
 
     const SECTIONS = [FILE_BUTTONS, MAP_BUTTONS, CELL_BUTTONS, EDGE_BUTTONS];

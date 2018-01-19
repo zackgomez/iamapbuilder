@@ -24,6 +24,10 @@ export function makeButton(
   };
 
   let button = new PIXI.Text(title, style);
+  return buttonizeText(button, onClick);
+}
+
+export function buttonizeText(button: PIXI.Text, onClick: (e: any) => void): PIXI.Text {
   button.interactive = true;
   button.buttonMode = true;
   button.on('pointerdown', e => {
