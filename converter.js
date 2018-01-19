@@ -93,6 +93,24 @@ const USER_ENTERED_FORMAT_CENTERED = {
 };
 const USER_ENTERED_FORMAT_TEXT_CELL = {
   verticalAlignment: 'MIDDLE',
+  textFormat: {
+    fontFamily: 'Calibri',
+    fontSize: 11,
+    bold: true,
+  },
+  /*
+  textFormatRuns: [
+  {
+    format: {},
+  },
+  {
+    startIndex: 9,
+    format: {
+      foregroundColor: {},
+      // nobold
+    },
+  ]
+  */
 };
 
 function renderTextCell(map: any, mapRenderInfo: MapRenderInfo, row: number, col: number) {
