@@ -87,7 +87,41 @@ function getEdge(map, x, y, dir) {
   return null;
 }
 
-function renderCell(map, row, col) {
+const USER_ENTERED_FORMAT_CENTERED = {
+  horizontalAlignment: 'CENTER',
+  verticalAlignment: 'MIDDLE',
+};
+const USER_ENTERED_FORMAT_TEXT_CELL = {
+  verticalAlignment: 'MIDDLE',
+};
+
+function renderTextCell(map: any, mapRenderInfo: MapRenderInfo, row: number, col: number) {
+  let text = null;
+  if (row === mapRenderInfo.maxRow + 3 && col === 0) {
+    text = `Location: ${map.briefingLocation}`;
+  } else if (row === mapRenderInfo.maxRow + 2 && col === 0) {
+    text = `Type: ${map.mapType}`;
+  } else {
+    return null;
+  }
+
+  return {
+    userEnteredValue: {
+      stringValue: text,
+    },
+    userEnteredFormat: {
+      ...USER_ENTERED_FORMAT_TEXT_CELL,
+    },
+  };
+}
+
+function renderCell(map: any, mapRenderInfo: MapRenderInfo, row: number, col: number) {
+  // render map info?
+  const textCell = renderTextCell(map, mapRenderInfo, row, col);
+  if (textCell) {
+    return textCell;
+  }
+
   let userEnteredValue = {};
   let userEnteredFormat = {};
 
@@ -105,8 +139,9 @@ function renderCell(map, row, col) {
     }
     if (cell.tileNumber) {
       userEnteredValue.stringValue = cell.tileNumber;
-      userEnteredFormat.horizontalAlignment = 'CENTER';
-      userEnteredFormat.verticalAlignment = 'MIDDLE';
+      userEnteredFormat = {...userEnteredFormat, ...USER_ENTERED_FORMAT_CENTERED};
+      //userEnteredFormat.horizontalAlignment = 'CENTER';
+      //userEnteredFormat.verticalAlignment = 'MIDDLE';
     }
   }
 
@@ -138,13 +173,37 @@ function renderCell(map, row, col) {
   return ret;
 }
 
+type MapRenderInfo = {
+  maxRow: number;
+};
+
+function computeMaxRow(map: any): number {
+  for (let r = map.rows - 1; r > 0; r--) {
+    let c = 0;
+    for (; c < map.cols; c++) {
+      const cell = getCell(map, c, r);
+      if (cell && cell.inBounds) {
+        break;
+      }
+    }
+    if (c !== map.cols) {
+      return r;
+    }
+  }
+  return 0;
+}
+
 function makeUpdateCellsRequest(sheetId: string, map: any) {
+  const mapRenderInfo : MapRenderInfo = {
+    maxRow: computeMaxRow(map),
+  };
+
   const rows = [];
   // HACK:
   for (let r = 0; r < map.rows; r++) {
     const values = [];
     for (let c = 0; c < map.cols && c < 25; c++) {
-      values.push(renderCell(map, r, c));
+      values.push(renderCell(map, mapRenderInfo, r, c));
     }
     rows.push({values});
   }
