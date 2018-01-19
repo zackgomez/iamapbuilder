@@ -274,11 +274,15 @@ export class TerrainTool extends Tool {
     context.board.compact();
     const serialized = context.board.serialize();
     const blob = new Blob([serialized], {type: 'application/json;charset=utf-8'});
-    const filename = prompt('Filename?');
+    let filename = prompt('Filename?');
+    const FILE_SUFFIX = '.json';
+    if (!filename.endsWith(FILE_SUFFIX)) {
+      filename = filename + FILE_SUFFIX;
+    }
     FileSaver.saveAs(blob, filename);
   }
   onUpload(state: UIState, context: ToolContext): void {
-    const fileInput : HTMLInputElement = (document.getElementById('fileInput'): any);
+    const fileInput: HTMLInputElement = (document.getElementById('fileInput'): any);
     if (fileInput) {
       let count = 0;
       const cb = () => {
@@ -289,10 +293,7 @@ export class TerrainTool extends Tool {
         this.onFileSelect(fileInput.files, context);
         fileInput.removeEventListener('change', cb);
       };
-      fileInput.addEventListener(
-        'change',
-        cb
-      );
+      fileInput.addEventListener('change', cb);
       fileInput.click();
     }
   }
@@ -310,6 +311,14 @@ export class TerrainTool extends Tool {
   }
   onComputeEdges(state: UIState, context: ToolContext): void {
     context.board.applyEdgeRules();
+  }
+  onSetMapName(state: UIState, context: ToolContext): void {
+    const name = prompt('Map Name') || '';
+    context.board.setName(name);
+  }
+  onSetBriefingLocation(state: UIState, context: ToolContext): void {
+    const briefingLocation = prompt('Briefing Location') || '';
+    context.board.setBriefingLocation(briefingLocation);
   }
   renderLayer(state: UIState, context: ToolContext): any {
     const layer = new PIXI.Container();
@@ -349,9 +358,12 @@ export class TerrainTool extends Tool {
     const CELL_BUTTONS = [
       makeSubtoolButtonItem('Cell', 'InBounds'),
       makeSubtoolButtonItem('Cell', 'Difficult'),
-      ['Cell : Tile Number', () => {
-        this.selectedSubtool_ = 'TileNumber';
-      }],
+      [
+        'Cell : Tile Number',
+        () => {
+          this.selectedSubtool_ = 'TileNumber';
+        },
+      ],
     ];
     const EDGE_BUTTONS = [
       ['Edge', 'Wall'],
@@ -369,7 +381,11 @@ export class TerrainTool extends Tool {
       ['Download', () => this.onDownload(state, context)],
       ['Upload', () => this.onUpload(state, context)],
     ];
-    const MAP_BUTTONS = [['Compute Edges', () => this.onComputeEdges(state, context)]];
+    const MAP_BUTTONS = [
+      ['Compute Edges', () => this.onComputeEdges(state, context)],
+      ['Set Map Name', () => this.onSetMapName(state, context)],
+      ['Set Briefing Location', () => this.onSetBriefingLocation(state, context)],
+    ];
 
     const SECTIONS = [FILE_BUTTONS, MAP_BUTTONS, CELL_BUTTONS, EDGE_BUTTONS];
 

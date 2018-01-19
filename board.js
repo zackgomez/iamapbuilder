@@ -34,7 +34,14 @@ export default class Board {
     return new Board(width, height);
   }
 
-  constructor(width: number, height: number) {
+  constructor(
+    width: number,
+    height: number,
+    name: string = '',
+    briefingLocation: string = '',
+  ) {
+    this.name = name || 'Unnamed Map';
+    this.briefingLocation = briefingLocation || 'Unset Location';
     this.width = width;
     this.height = height;
 
@@ -48,6 +55,19 @@ export default class Board {
   }
   getHeight(): number {
     return this.height;
+  }
+  getName(): string {
+    return this.name;
+  }
+  getBriefingLocation(): string {
+    return this.briefingLocation;
+  }
+
+  setName(name: string): void {
+    this.name = name;
+  }
+  setBriefingLocation(briefingLocation: string) {
+    this.briefingLocation = briefingLocation;
   }
 
   isValidCell(x: number, y: number): boolean {
@@ -211,11 +231,13 @@ export default class Board {
       cells: this.cellRows,
       horizontal_edges: this.horizontalEdgeRows,
       vertical_edges: this.verticalEdgeRows,
+      name: this.name,
+      briefingLocation: this.briefingLocation,
     });
   }
   static fromSerialized(serialized: string): Board {
     const json = JSON.parse(serialized);
-    const board = new Board(json.cols, json.rows);
+    const board = new Board(json.cols, json.rows, json.name, json.briefingLocation);
     board.cellRows = json.cells;
     board.verticalEdgeRows = json.vertical_edges;
     board.horizontalEdgeRows = json.horizontal_edges;
@@ -225,6 +247,9 @@ export default class Board {
   static defaultBoard(): Board {
     return new Board(26, 50);
   }
+
+  name: string;
+  briefingLocation: string;
 
   width: number;
   height: number;

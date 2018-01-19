@@ -10,7 +10,7 @@ var {makeUpdateCellsRequest} = require('./converter.js');
 // at ~/.credentials/sheets.googleapis.com-nodejs-quickstart.json
 var SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 var TOKEN_DIR =
-// $FlowFixMe
+  // $FlowFixMe
   (process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE) +
   '/.credentials/';
 var TOKEN_PATH = TOKEN_DIR + 'sheets.googleapis.com-nodejs-quickstart.json';

@@ -65,8 +65,8 @@ function getGridLayer(board: Board) {
         const text = new PIXI.Text(cell.tileNumber, TILE_NUMBER_TEXT_STYLE);
         text.anchor.x = 0.5;
         text.anchor.y = 0.5;
-        text.x = x * SCALE + (SCALE / 2);
-        text.y = y * SCALE + (SCALE / 2);
+        text.x = x * SCALE + SCALE / 2;
+        text.y = y * SCALE + SCALE / 2;
         grid.addChild(text);
       }
     }
@@ -152,7 +152,7 @@ function render() {
   if (board) {
     root.addChild(getGridLayer(board));
     root.addChild(getEdgeLayer(board));
-    root.addChild(makeUILayer(uiState));
+    root.addChild(makeUILayer(uiState, board));
   }
 
   let mouseInfo = new PIXI.Text(
@@ -229,7 +229,13 @@ function setCurrentTool(newTool: Tool): void {
   renderIfNecessary();
 }
 
-function makeUILayer(state: UIState) {
+const MAP_INFO_TEXT_WIDTH = 300;
+const MAP_INFO_TEXT_STYLE = new PIXI.TextStyle({
+  fontSize: 20,
+  wordWrap: true,
+  wordWrapWidth: MAP_INFO_TEXT_WIDTH,
+});
+function makeUILayer(state: UIState, board: Board) {
   let layer = new PIXI.Container();
 
   const toolLayer = uiState.currentTool.renderLayer(uiState, getToolContext());
@@ -237,6 +243,14 @@ function makeUILayer(state: UIState) {
     layer.addChild(toolLayer);
   }
 
+  const mapInfoString = `Map Name: ${board.getName()}\n\nBriefing Location: ${board.getBriefingLocation()}`;
+  const mapInfoText = new PIXI.Text(mapInfoString, MAP_INFO_TEXT_STYLE);
+  mapInfoText.x = VIEWPORT_WIDTH - MAP_INFO_TEXT_WIDTH;
+  mapInfoText.y = 10;
+
+  layer.addChild(mapInfoText);
+
+  /*
   const BUTTON_SIZE = {width: 50, height: 30};
   let x = VIEWPORT_WIDTH - 10 - BUTTON_SIZE.width;
   let y = 10;
@@ -244,7 +258,7 @@ function makeUILayer(state: UIState) {
   state.availableTools.forEach(tool => {
     const selected = tool === state.currentTool;
     const style = {
-      fill: selected ? '#00FF00' : '#FFFFFF',
+      fill: selected ? '#000000' : '#FFFFFF',
     };
     const button = makeButton(tool.getName(), BUTTON_SIZE, style, () => {
       setCurrentTool(tool);
@@ -254,6 +268,7 @@ function makeUILayer(state: UIState) {
     y += BUTTON_SIZE.height;
     layer.addChild(button);
   });
+  */
 
   return layer;
 }
