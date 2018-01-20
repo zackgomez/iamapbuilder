@@ -112,8 +112,8 @@ function listMajors(auth) {
   sheets.spreadsheets.get(
     {
       auth: auth,
-      spreadsheetId: '1_tetSsXQLlTHUBqXQNJYbOjB25oCkzzYg7NNkMMwEbo', //'1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
-      ranges: 'Armed and Operational',
+      spreadsheetId: SPREADSHEET_ID,
+      ranges: 'Test SEcurity Breach',
       includeGridData: true,
     },
     function(err, response) {
@@ -258,9 +258,6 @@ function shrinkSheets(auth) {
         }
       });
 
-      //fs.writeFile('requests.json', JSON.stringify(requests, null, 2));
-      //return;
-
       sheets.spreadsheets.batchUpdate(
         {
           auth,
@@ -281,6 +278,6 @@ function shrinkSheets(auth) {
 }
 
 async function onAuth(auth) {
-  //listMajors(auth);
   await uploadMap(auth);
+  //listMajors(auth);
 }

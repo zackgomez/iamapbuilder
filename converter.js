@@ -98,31 +98,10 @@ const USER_ENTERED_FORMAT_TEXT_CELL = {
     fontSize: 11,
     bold: true,
   },
-  /*
-  textFormatRuns: [
-  {
-    format: {},
-  },
-  {
-    startIndex: 9,
-    format: {
-      foregroundColor: {},
-      // nobold
-    },
-  ]
-  */
 };
 
-function renderTextCell(map: any, mapRenderInfo: MapRenderInfo, row: number, col: number) {
-  let text = null;
-  if (row === mapRenderInfo.maxRow + 3 && col === 0) {
-    text = `Location: ${map.briefingLocation}`;
-  } else if (row === mapRenderInfo.maxRow + 2 && col === 0) {
-    text = `Type: ${map.mapType}`;
-  } else {
-    return null;
-  }
-
+function renderLabelCell(title: string, value: string): any {
+  const text = `${title}: ${value}`;
   return {
     userEnteredValue: {
       stringValue: text,
@@ -130,7 +109,38 @@ function renderTextCell(map: any, mapRenderInfo: MapRenderInfo, row: number, col
     userEnteredFormat: {
       ...USER_ENTERED_FORMAT_TEXT_CELL,
     },
+    textFormatRuns: [
+      {
+        format: {},
+      },
+      {
+        startIndex: title.length + 2,
+        format: {
+          foregroundColor: {},
+          fontFamily: 'Calibri',
+          fontSize: 11,
+          bold: false,
+        },
+      },
+    ],
   };
+}
+
+function renderTextCell(map: any, mapRenderInfo: MapRenderInfo, row: number, col: number) {
+  let title = '';
+  let value = '';
+  if (row === mapRenderInfo.maxRow + 3 && col === 0) {
+    title = 'Location';
+    value = map.briefingLocation;
+  } else if (row === mapRenderInfo.maxRow + 2 && col === 0) {
+    title = 'Type';
+    value = map.mapType;
+  } else {
+    return null;
+  }
+
+  const v = renderLabelCell(title, value);
+  return v;
 }
 
 function renderCell(map: any, mapRenderInfo: MapRenderInfo, row: number, col: number) {
@@ -233,7 +243,7 @@ function makeUpdateCellsRequest(sheetId: string, map: any) {
       columnIndex: 1,
     },
     rows,
-    fields: 'userEnteredValue,userEnteredFormat',
+    fields: 'userEnteredValue,userEnteredFormat,textFormatRuns',
   };
 }
 
