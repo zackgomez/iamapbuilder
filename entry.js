@@ -236,17 +236,20 @@ const MAP_INFO_TEXT_STYLE = new PIXI.TextStyle({
   wordWrapWidth: MAP_INFO_TEXT_WIDTH,
 });
 function onSetMapName(): void {
-  const name = prompt('Map Name') || '';
+  const name = prompt('Map Name', globalBoard.getName()) || '';
   globalBoard.setName(name);
   uiState.needsRender = true;
 }
 function onSetMapType(): void {
-  const type = prompt('Map Type') || '';
+  const type = prompt('Map Type', globalBoard.getMapType()) || '';
   globalBoard.setMapType(type);
   uiState.needsRender = true;
 }
 function onSetBriefingLocation(): void {
-  const briefingLocation = prompt('Briefing Location') || '';
+  const briefingLocation = prompt(
+    'Briefing Location',
+    globalBoard.getBriefingLocation(),
+  ) || '';
   globalBoard.setBriefingLocation(briefingLocation);
   uiState.needsRender = true;
 }
