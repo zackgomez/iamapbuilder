@@ -21,6 +21,11 @@ export type Edge =
   | 'Difficult';
 export type EdgeDirection = 'Horizontal' | 'Vertical';
 
+export type TileList = {
+  title: string,
+  tiles: Array<string>,
+};
+
 function defaultCell(): Cell {
   return {};
 }
@@ -67,6 +72,9 @@ export default class Board {
   getMapType(): string {
     return this.mapType;
   }
+  getTileLists(): Array<TileList> {
+    return this.tileLists;
+  }
 
   setName(name: string): void {
     this.name = name;
@@ -76,6 +84,15 @@ export default class Board {
   }
   setMapType(mapType: string): void {
     this.mapType = mapType;
+  }
+
+  addTileList(tileList: TileList): void {
+    this.tileLists.push(tileList);
+  }
+  removeTileList(index: number): void {
+    if (this.tileLists.length > index) {
+      this.tileLists.splice(index, 1);
+    }
   }
 
   isValidCell(x: number, y: number): boolean {
@@ -242,14 +259,16 @@ export default class Board {
       name: this.name,
       briefingLocation: this.briefingLocation,
       mapType: this.mapType,
+      tileLists: this.tileLists,
     });
   }
   static fromSerialized(serialized: string): Board {
     const json = JSON.parse(serialized);
     const board = new Board(json.cols, json.rows, json.name, json.briefingLocation, json.mapType);
-    board.cellRows = json.cells;
-    board.verticalEdgeRows = json.vertical_edges;
-    board.horizontalEdgeRows = json.horizontal_edges;
+    board.cellRows = json.cells || {};
+    board.verticalEdgeRows = json.vertical_edges || {};
+    board.horizontalEdgeRows = json.horizontal_edges || {};
+    board.tileLists = json.tileLists || [];
 
     return board;
   }
@@ -260,6 +279,7 @@ export default class Board {
   name: string;
   briefingLocation: string;
   mapType: string;
+  tileLists: Array<TileList>;
 
   width: number;
   height: number;
