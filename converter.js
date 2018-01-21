@@ -1,5 +1,6 @@
 /* @flow */
-const _ = require('lodash');
+import _ from 'lodash';
+import Board from './board';
 
 const EdgeTypeToBorderStyle = {
   Nothing: null,
@@ -100,6 +101,35 @@ const USER_ENTERED_FORMAT_TEXT_CELL = {
   },
 };
 
+function renderTileListItem(tile: string, count: number) {
+  if (count < 2) {
+    return tile;
+  }
+  return `${tile.trim()}(${count})`;
+}
+
+function renderTileListValue(tileList: any): string {
+  const reduced = [];
+  let lastTile = null;
+  let count = 0;
+  tileList.tiles.forEach(tile => {
+    if (tile !== lastTile) {
+      if (lastTile !== null) {
+        reduced.push(renderTileListItem(lastTile, count));
+      }
+      lastTile = tile;
+      count = 1;
+    } else {
+      count++;
+    }
+  });
+  if (lastTile) {
+    reduced.push(renderTileListItem(lastTile, count));
+  }
+
+  return reduced.join(', ');
+}
+
 function renderLabelCell(title: string, value: string): any {
   const text = `${title}: ${value}`;
   return {
@@ -110,9 +140,6 @@ function renderLabelCell(title: string, value: string): any {
       ...USER_ENTERED_FORMAT_TEXT_CELL,
     },
     textFormatRuns: [
-      {
-        format: {},
-      },
       {
         startIndex: title.length + 2,
         format: {
@@ -127,14 +154,26 @@ function renderLabelCell(title: string, value: string): any {
 }
 
 function renderTextCell(map: any, mapRenderInfo: MapRenderInfo, row: number, col: number) {
+  if (col !== 0) {
+    return;
+  }
+
   let title = '';
   let value = '';
-  if (row === mapRenderInfo.maxRow + 3 && col === 0) {
-    title = 'Location';
-    value = map.briefingLocation;
-  } else if (row === mapRenderInfo.maxRow + 2 && col === 0) {
+
+  const TILE_LIST_START_ROW = mapRenderInfo.maxRow + 2;
+  const MISSION_INFO_START_ROW = TILE_LIST_START_ROW + map.tileLists.length + 1;
+
+  if (col === 0 && row >= TILE_LIST_START_ROW && row < TILE_LIST_START_ROW + map.tileLists.length) {
+    const tileList = map.tileLists[row - TILE_LIST_START_ROW];
+    title = tileList.title;
+    value = renderTileListValue(tileList);
+  } else if (row === MISSION_INFO_START_ROW) {
     title = 'Type';
     value = map.mapType;
+  } else if (row === MISSION_INFO_START_ROW + 1) {
+    title = 'Location';
+    value = map.briefingLocation;
   } else {
     return null;
   }
