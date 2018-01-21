@@ -130,7 +130,7 @@ function renderTileListValue(tileList: any): string {
   return reduced.join(', ');
 }
 
-function renderLabelCell(title: string, value: string): any {
+function renderLabelCell(title: string, value: string, valueColor: ?any): any {
   const text = `${title}: ${value}`;
   return {
     userEnteredValue: {
@@ -143,7 +143,7 @@ function renderLabelCell(title: string, value: string): any {
       {
         startIndex: title.length + 2,
         format: {
-          foregroundColor: {},
+          foregroundColor: valueColor,
           fontFamily: 'Calibri',
           fontSize: 11,
           bold: false,
@@ -160,6 +160,7 @@ function renderTextCell(map: any, mapRenderInfo: MapRenderInfo, row: number, col
 
   let title = '';
   let value = '';
+  let color = null;
 
   const TILE_LIST_START_ROW = mapRenderInfo.maxRow + 2;
   const MISSION_INFO_START_ROW = TILE_LIST_START_ROW + map.tileLists.length + 1;
@@ -171,6 +172,7 @@ function renderTextCell(map: any, mapRenderInfo: MapRenderInfo, row: number, col
   } else if (row === MISSION_INFO_START_ROW) {
     title = 'Type';
     value = map.mapType;
+    color = computeMissionColor(map);
   } else if (row === MISSION_INFO_START_ROW + 1) {
     title = 'Location';
     value = map.briefingLocation;
@@ -178,7 +180,7 @@ function renderTextCell(map: any, mapRenderInfo: MapRenderInfo, row: number, col
     return null;
   }
 
-  const v = renderLabelCell(title, value);
+  const v = renderLabelCell(title, value, color);
   return v;
 }
 
