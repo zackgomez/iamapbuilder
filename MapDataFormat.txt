@@ -3,7 +3,7 @@ Title (Reclamation)
 Type (Green Side Mission [Lando Calrissian])
 Location (The Bespin Gambit, page 8 [Wave 6])
 
-Tiles...
+Tile List (Core Game Map Tiles: 23A, ...)
 
 
 == Cell

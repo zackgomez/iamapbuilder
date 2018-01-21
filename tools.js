@@ -369,7 +369,6 @@ export class TerrainTool extends Tool {
       ['Edge', 'CellBoundary'],
       ['Edge', 'Blocking'],
       ['Edge', 'Impassible'],
-      ['Edge', 'Difficult'],
     ].map(([a, b]) => makeSubtoolButtonItem(a, b));
 
     const FILE_BUTTONS = [
