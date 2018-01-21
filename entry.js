@@ -185,6 +185,7 @@ function getToolContext(): ToolContext {
     viewHeight: VIEWPORT_HEIGHT,
     cellPositionFromEvent,
     setBoard,
+    setFilename,
   };
 }
 
@@ -221,6 +222,7 @@ let uiState: UIState = {
   currentTool: allTools[0],
   availableTools: allTools,
   needsRender: true,
+  filename: null,
 };
 
 function setCurrentTool(newTool: Tool): void {
@@ -308,6 +310,9 @@ function setBoard(board) {
   uiState.needsRender = true;
   setTimeout(renderIfNecessary);
 }
+function setFilename(filename: string): void {
+  uiState.filename = filename;
+}
 
 (() => {
   let board = Board.emptyBoard(26, 50);
@@ -315,6 +320,7 @@ function setBoard(board) {
   const serialized = window.localStorage.getItem('mapbuilder.save');
   if (serialized) {
     board = Board.fromSerialized(serialized);
+    uiState.filename = window.localStorage.getItem('mapbuilder.filename');
   }
 
   setBoard(board);

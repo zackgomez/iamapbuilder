@@ -18,6 +18,7 @@ export type UIState = {
   currentTool: Tool,
   availableTools: Array<Tool>,
   needsRender: boolean,
+  filename: ?string,
 };
 
 export type Point = {|
@@ -33,6 +34,7 @@ export type ToolContext = {
 
   cellPositionFromEvent: (e: any) => Point,
   setBoard: (board: Board) => void,
+  setFilename: (filename: string) => void,
 };
 
 export class Tool {
@@ -258,23 +260,26 @@ export class TerrainTool extends Tool {
   }
   onSave(state: UIState, context: ToolContext): void {
     window.localStorage.setItem('mapbuilder.save', context.board.serialize());
+    window.localStorage.setItem('mapbuilder.filename', state.filename);
   }
   onLoad(state: UIState, context: ToolContext): void {
     const serialized = window.localStorage.getItem('mapbuilder.save');
     if (serialized && confirm('Load board?')) {
       context.setBoard(Board.fromSerialized(serialized));
+      context.setFilename(window.localStorage.getItem('mapbuilder.filename') || '');
     }
   }
   onNew(state: UIState, context: ToolContext): void {
     if (confirm('Create a new Board?')) {
       context.setBoard(new Board(26, 50));
+      context.setFilename('');
     }
   }
   onDownload(state: UIState, context: ToolContext): void {
     context.board.compact();
     const serialized = context.board.serialize();
     const blob = new Blob([serialized], {type: 'application/json;charset=utf-8'});
-    let filename = prompt('Filename?');
+    let filename = prompt('Filename?', state.filename || '');
     const FILE_SUFFIX = '.json';
     if (!filename.endsWith(FILE_SUFFIX)) {
       filename = filename + FILE_SUFFIX;
@@ -308,6 +313,7 @@ export class TerrainTool extends Tool {
       context.setBoard(board);
     };
     reader.readAsText(files.item(0));
+    context.setFilename(files.item(0).name);
   }
   onComputeEdges(state: UIState, context: ToolContext): void {
     context.board.applyEdgeRules();
