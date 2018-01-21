@@ -260,6 +260,31 @@ function computeMaxRow(map: any): number {
   return 0;
 }
 
+function computeMissionColor(map: any): any {
+  const type = map.mapType.toLowerCase();
+  if (type.startsWith('red')) {
+    return { red: 1 };
+  } else if (type.startsWith('gray')) {
+    return {
+      red: 127,
+      green: 127,
+      blue: 127,
+    };
+  } else if (type.startsWith('green')) {
+    return {
+      green: 176,
+      blue: 80,
+    };
+  } else if (type.startsWith('agenda')) {
+    return {
+      red: 31,
+      green: 73,
+      blue: 125,
+    };
+  }
+  return null;
+}
+
 function makeUpdateCellsRequest(sheetId: string, map: any) {
   const mapRenderInfo : MapRenderInfo = {
     maxRow: computeMaxRow(map),
@@ -286,6 +311,20 @@ function makeUpdateCellsRequest(sheetId: string, map: any) {
   };
 }
 
+function makeUpdateSpreadsheetRequest(sheetId: string, map: any) {
+  return {
+    updateSheetProperties: {
+      properties: {
+        sheetId,
+        title: map.name,
+        tabColor: computeMissionColor(map),
+      },
+      fields: 'title,tabColor',
+    }
+  };
+}
+
 module.exports = {
   makeUpdateCellsRequest,
+  makeUpdateSpreadsheetRequest,
 };
