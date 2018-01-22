@@ -7,6 +7,7 @@ import nullthrows from 'nullthrows';
 import Board from './board';
 import type {Cell, EdgeDirection, Edge} from './board';
 import {makeButton} from './UIUtils';
+import {checkBoardTiles} from './BoardUtils';
 
 import FileSaver from 'file-saver';
 
@@ -322,6 +323,20 @@ export class TerrainTool extends Tool {
   onComputeEdges(state: UIState, context: ToolContext): void {
     context.board.applyEdgeRules();
   }
+  onCheckTiles(state: UIState, context: ToolContext): void {
+    const result = checkBoardTiles(context.board);
+
+    const lines = [];
+    result.forEach((v, k) => {
+      if (v < 0) {
+        lines.push(`${-v} missing ${k}`);
+      } else if (v > 0) {
+        lines.push(`${v} extra ${k}`);
+      }
+    });
+
+    alert(lines.join('\n'));
+  }
   renderLayer(state: UIState, context: ToolContext): any {
     const layer = new PIXI.Container();
 
@@ -386,6 +401,7 @@ export class TerrainTool extends Tool {
     ];
     const MAP_BUTTONS = [
       ['Compute Edges', () => this.onComputeEdges(state, context)],
+      ['Check Tiles', () => this.onCheckTiles(state, context)],
     ];
 
     const SECTIONS = [FILE_BUTTONS, MAP_BUTTONS, CELL_BUTTONS, EDGE_BUTTONS];

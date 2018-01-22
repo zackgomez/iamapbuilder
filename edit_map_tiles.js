@@ -6,6 +6,7 @@ import nullthrows from 'nullthrows';
 import Board from './board';
 import fs from 'mz/fs';
 import readline from 'mz/readline';
+import {checkBoardTiles} from './BoardUtils';
 
 type State = {
   filename: ?string,
@@ -40,29 +41,12 @@ async function handleLine(rl: readline, line: string): Promise<void> {
   } else if (line.startsWith('save')) {
     let filename = state.filename;
     if (!filename || filename.length === 0) {
-      filename = await rl.question('Save as?');
+      filename = await rl.question('Save as? ');
     }
     await fs.writeFile(filename, board.serialize());
     state.filename = filename;
   } else if (line.startsWith('check')) {
-    const tileToCount = new Map();
-    for (let r = 0; r < board.getHeight(); r++) {
-      for (let c = 0; c < board.getWidth(); c++) {
-        const cell = board.getCell(c, r);
-        const tile = cell.tileNumber
-        if (tile && tile.length > 0) {
-          tileToCount.set(tile, (tileToCount.get(tile) || 0) + 1);
-        }
-      }
-    }
-
-
-    const tileLists = board.getTileLists();
-    _.each(tileLists, ({title, tiles}) => {
-      _.each(tiles, tile => {
-        tileToCount.set(tile, (tileToCount.get(tile) || 0) - 1);
-      });
-    });
+    const tileToCount = checkBoardTiles(board);
     console.log(tileToCount);
   } else if (line.startsWith('exit')) {
     process.exit(0);
