@@ -163,12 +163,8 @@ async function genShrinkSpreadsheet(
 async function genCreateMap(
   cmd: any,
 ): Promise<void> {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
   const board = Board.defaultBoard();
-  await genEditMode(rl, null, board);
+  await genEditMode(null, board);
 }
 
 async function genEditFile(
@@ -178,11 +174,7 @@ async function genEditFile(
   const serialized = await fs.readFile(file);
   const board = Board.fromSerialized(serialized);
 
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-  await genEditMode(rl, file, board);
+  await genEditMode(file, board);
 }
 
 function wrapAsyncCommand(asyncCommand) {
