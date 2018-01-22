@@ -315,6 +315,10 @@ export class TerrainTool extends Tool {
     reader.onload = e => {
       const serialized = e.target.result;
       const board = Board.fromSerialized(serialized);
+      //context.board.setMapType(board.getMapType());
+      //context.board.setName(board.getName());
+      //context.board.setBriefingLocation(board.getBriefingLocation());
+      //context.board.tileLists = board.tileLists;
       context.setBoard(board);
     };
     reader.readAsText(files.item(0));
