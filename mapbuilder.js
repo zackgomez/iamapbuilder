@@ -14,9 +14,10 @@ import {
 
 import Board from './board';
 
+const sheets = google.sheets('v4');
+
 function genBatchUpdate(
   auth,
-  sheets,
   spreadsheetId: string,
   requests: Array<any>,
 ): Promise<any> {
@@ -37,15 +38,18 @@ function genBatchUpdate(
 
 function genSpreadsheets(
   auth,
-  sheets,
   spreadsheetId: string,
-  range: string,
+  range: ?string,
+  includeGridData: ?bool,
 ): Promise<any> {
+  includeGridData = includeGridData || false;
+  let rangeParams = range ? {ranges: [range]} : {};
   return new Promise((resolve, reject) => {
     sheets.spreadsheets.get({
       auth,
       spreadsheetId,
-      ranges: [range],
+      includeGridData,
+      ...rangeParams,
     }, (err, response) => {
       if (err) {
         reject(err);
@@ -56,14 +60,29 @@ function genSpreadsheets(
   });
 }
 
-async function downloadSpreadsheetCommand(
+async function genDownloadSpreadsheetCommand(
   spreadsheetId: string, 
   range: string,
   cmd: Object,
 ): Promise<void> {
   const auth = await genAuth();
 
-  // TODO
+  const response = await genSpreadsheets(
+    auth,
+    spreadsheetId,
+    range,
+    true, // includeGridData
+  );
+
+  const printed = JSON.stringify(response, null, 2);
+
+  const filename = cmd.filepath;
+  if (filename) {
+    await fs.writeFile(filename, printed);
+    console.log(`Wrote response to ${filename}`);
+  } else {
+    console.log(printed);
+  }
 }
 
 async function genUploadSpreadsheet(
@@ -76,13 +95,14 @@ async function genUploadSpreadsheet(
   const mapContents = await fs.readFile(mapFilename);
   const map = JSON.parse(mapContents);
 
-  const sheets = google.sheets('v4');
+  console.log(`Uploading map ${map.name}`);
+
 
   let sheetId: ?number = null;
   let requests = [];
 
   try {
-    const response = await genSpreadsheets(auth, sheets, spreadsheetId, map.name + '');
+    const response = await genSpreadsheets(auth, spreadsheetId, map.name + '');
     if (response.sheets.length === 1) {
       sheetId = response.sheets[0].properties.sheetId;
       requests.push(makeUpdateSheetPropertiesRequest(sheetId, map));
@@ -99,13 +119,47 @@ async function genUploadSpreadsheet(
   requests.push(...makeUpdateDimensionPropertiesRequests(sheetId));
   requests.push(makeUpdateCellsRequest(sheetId, map));
 
-  const response = await genBatchUpdate(auth, sheets, spreadsheetId, requests);
+  const response = await genBatchUpdate(auth, spreadsheetId, requests);
 
-  console.log(response);
+  console.log('Successfully updated sheet');
+}
+
+async function genShrinkSpreadsheet(
+  spreadsheetId: string,
+  cmd: any,
+): Promise<void> {
+  const auth = await genAuth();
+
+  const sheetsResponse = await genSpreadsheets(auth, spreadsheetId);
+  const requests = [];
+  sheetsResponse.sheets.forEach(sheet => {
+    if (sheet.properties.gridProperties.rowCount > 100) {
+      const sheetId = sheet.properties.sheetId;
+      requests.push({
+        updateSheetProperties: {
+          properties: {
+            sheetId,
+            gridProperties: {
+              rowCount: 100,
+            },
+          },
+          fields: 'gridProperties.rowCount',
+        },
+      });
+    }
+  });
+
+  if (requests.length === 0) {
+    console.log('No shrinking needed');
+    return;
+  }
+  console.log(`Shrinking ${requests.length} sheets`);
+
+  await genBatchUpdate(auth, spreadsheetId, requests);
 }
 
 function wrapAsyncCommand(asyncCommand) {
-  return function() {
+  return function(a, b, c, d, e) {
     asyncCommand.apply(null, arguments).catch(e => {
       console.error(e);
       process.exit(1);
@@ -115,10 +169,16 @@ function wrapAsyncCommand(asyncCommand) {
 
 commander
   .command('download <spreadsheetId> <range>')
-  .action(wrapAsyncCommand(downloadSpreadsheetCommand));
+  .description('download a spreadsheet')
+  .option('-f, --filepath <filepath>', 'output file')
+  .action(wrapAsyncCommand(genDownloadSpreadsheetCommand));
 
 commander
   .command('upload <spreadsheetId> <mapFilename>')
   .action(wrapAsyncCommand(genUploadSpreadsheet));
+
+commander
+  .command('shrink <spreadsheetId>')
+  .action(wrapAsyncCommand(genShrinkSpreadsheet));
 
 commander.parse(process.argv);
