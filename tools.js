@@ -74,7 +74,6 @@ export class TerrainTool extends Tool {
   dragCellType_: ?CellType = null;
   dragEdgeType_: ?Edge = null;
 
-  cellType_: CellType = 'InBounds';
   candidateCell_: ?Point;
 
   edgeType_: Edge = 'Wall';
@@ -156,7 +155,12 @@ export class TerrainTool extends Tool {
         if (!this.candidateCell_) {
           return state;
         }
-        this.dragCellType_ = this.cellType_;
+        console.log(event.data.originalEvent);
+        if (event.data.originalEvent.button === 1) {
+          this.dragCellType_ = 'Difficult';
+        } else {
+          this.dragCellType_ = 'InBounds';
+        }
         break;
 
       case 'Edge':
@@ -346,16 +350,18 @@ export class TerrainTool extends Tool {
         this.selectedSubtool_ = subtool;
         if (this.selectedSubtool_ === 'Edge') {
           this.edgeType_ = (type: any);
-        } else if (this.selectedSubtool_ === 'Cell') {
-          this.cellType_ = (type: any);
         }
       };
       return [title, onClick];
     };
 
     const CELL_BUTTONS = [
-      makeSubtoolButtonItem('Cell', 'InBounds'),
-      makeSubtoolButtonItem('Cell', 'Difficult'),
+      [
+        'Cell',
+        () => {
+          this.selectedSubtool_ = 'Cell';
+        },
+      ],
       [
         'Cell : Tile Number',
         () => {
