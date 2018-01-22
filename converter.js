@@ -244,6 +244,7 @@ function renderCell(map: any, mapRenderInfo: MapRenderInfo, row: number, col: nu
 
 type MapRenderInfo = {
   maxRow: number;
+  maxCol: number;
 };
 
 function computeMaxRow(map: any): number {
@@ -257,6 +258,21 @@ function computeMaxRow(map: any): number {
     }
     if (c !== map.cols) {
       return r;
+    }
+  }
+  return 0;
+}
+function computeMaxCol(map: any): number {
+  for (let c = map.cols - 1; c > 0; c--) {
+    let r = 0;
+    for (; r < map.rows; r++) {
+      const cell = getCell(map, c, r);
+      if (cell && cell.inBounds) {
+        break;
+      }
+    }
+    if (r !== map.rows) {
+      return c;
     }
   }
   return 0;
@@ -287,46 +303,102 @@ function computeMissionColor(map: any): any {
   return null;
 }
 
-function makeUpdateCellsRequest(sheetId: string, map: any) {
+export function makeUpdateCellsRequest(sheetId: number, map: any) {
   const mapRenderInfo : MapRenderInfo = {
     maxRow: computeMaxRow(map),
+    maxCol: computeMaxCol(map),
   };
+
+  const rowCount = getSheetHeight(map);
+  const colCount = getSheetWidth(map);
 
   const rows = [];
   // HACK:
-  for (let r = 0; r < map.rows; r++) {
+  for (let r = 0; r < rowCount - 1; r++) {
     const values = [];
-    for (let c = 0; c < map.cols && c < 25; c++) {
+    for (let c = 0; c < colCount - 1 ; c++) {
       values.push(renderCell(map, mapRenderInfo, r, c));
     }
     rows.push({values});
   }
 
   return {
-    start: {
-      sheetId,
-      rowIndex: 1,
-      columnIndex: 1,
+    updateCells: {
+      start: {
+        sheetId,
+        rowIndex: 1,
+        columnIndex: 1,
+      },
+      rows,
+      fields: 'userEnteredValue,userEnteredFormat,textFormatRuns',
     },
-    rows,
-    fields: 'userEnteredValue,userEnteredFormat,textFormatRuns',
   };
 }
 
-function makeUpdateSpreadsheetRequest(sheetId: string, map: any) {
+function getSheetHeight(map: any): number {
+  const maxRow = computeMaxRow(map);
+  return 1 + maxRow + 1 + map.tileLists.length + 1 + 2 + 1;
+}
+function getSheetWidth(map: any): number {
+  return Math.max(2 + computeMaxCol(map), 26);
+}
+
+function getSheetProperties(sheetId: ?number, map: any): any {
+  // TODO also compute max col here
+  return {
+    sheetId,
+    title: map.name,
+    tabColor: computeMissionColor(map),
+    gridProperties: {
+      rowCount: getSheetHeight(map),
+      columnCount: getSheetWidth(map),
+    },
+  };
+}
+
+export function makeUpdateSheetPropertiesRequest(sheetId: number, map: any) {
   return {
     updateSheetProperties: {
-      properties: {
-        sheetId,
-        title: map.name,
-        tabColor: computeMissionColor(map),
-      },
-      fields: 'title,tabColor',
+      properties: getSheetProperties(sheetId, map),
+      fields: 'title,tabColor,gridProperties',
     }
   };
 }
 
-module.exports = {
-  makeUpdateCellsRequest,
-  makeUpdateSpreadsheetRequest,
-};
+function makeUpdateDimensionPropertiesRequest(sheetId: number, dimension, pixelSize) {
+  return {
+    updateDimensionProperties: {
+      range: {
+        sheetId,
+        dimension,
+      },
+      properties: {
+        pixelSize,
+      },
+      fields: 'pixelSize',
+    },
+  };
+}
+
+export function makeUpdateDimensionPropertiesRequests(sheetId: number): Array<any> {
+  return [
+    makeUpdateDimensionPropertiesRequest(
+      sheetId,
+      'COLUMNS',
+      29,
+    ),
+    makeUpdateDimensionPropertiesRequest(
+      sheetId,
+      'ROWS',
+      30,
+    ),
+  ];
+}
+
+export function makeCreateSheetRequest(map: any, sheetId: ?number): any {
+  return {
+    addSheet: {
+      properties: getSheetProperties(sheetId, map),
+    },
+  };
+}

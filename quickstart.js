@@ -4,7 +4,7 @@ var fs = require('mz/fs');
 var readline = require('mz/readline');
 var google = require('googleapis');
 var googleAuth = require('google-auth-library');
-var {makeUpdateCellsRequest, makeUpdateSpreadsheetRequest} = require('./converter.js');
+var {makeUpdateCellsRequest, makeUpdateSheetPropertiesRequest} = require('./converter.js');
 
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/sheets.googleapis.com-nodejs-quickstart.json
@@ -163,7 +163,7 @@ function makeUpdateDimensionPropertiesRequests(sheetId) {
 }
 
 const SPREADSHEET_ID = '1_tetSsXQLlTHUBqXQNJYbOjB25oCkzzYg7NNkMMwEbo';
-const SHEET_ID = '670131681';
+const SHEET_ID = 670131681;
 
 async function getFilename(question: string): Promise<string> {
   if (process.argv.length === 3) {
@@ -194,7 +194,7 @@ async function uploadMap(auth): Promise<void> {
   let requests = [{updateCells}];
 
   requests = requests.concat(makeUpdateDimensionPropertiesRequests(SHEET_ID));
-  requests.push(makeUpdateSpreadsheetRequest(SHEET_ID, map));
+  requests.push(makeUpdateSheetPropertiesRequest(SHEET_ID, map));
 
   sheets.spreadsheets.batchUpdate(
     {
