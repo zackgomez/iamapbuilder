@@ -281,23 +281,26 @@ function computeMaxCol(map: any): number {
 function computeMissionColor(map: any): any {
   const type = map.mapType.toLowerCase();
   if (type.startsWith('red')) {
-    return { red: 1 };
+    return {
+      red: 1
+    };
   } else if (type.startsWith('gray')) {
     return {
-      red: 127,
-      green: 127,
-      blue: 127,
+      red: 127 / 255,
+      green: 127 / 255,
+      blue: 127 / 255,
     };
   } else if (type.startsWith('green')) {
     return {
-      green: 176,
-      blue: 80,
+      red: 0 / 255,
+      green: 176 / 255,
+      blue: 80 / 255,
     };
   } else if (type.startsWith('agenda')) {
     return {
-      red: 31,
-      green: 73,
-      blue: 125,
+      red: 31 / 255,
+      green: 73 / 255,
+      blue: 125 / 255,
     };
   }
   return null;
