@@ -7,7 +7,7 @@ import Board from './board';
 import fs from 'mz/fs';
 import readline from 'mz/readline';
 import {checkBoardTiles} from './BoardUtils';
-import {TileSets} from './GameData';
+import {TileSets, MissionTypes, BriefingLocations} from './GameData';
 
 type State = {
   filename: ?string,
@@ -55,9 +55,30 @@ function completer(
     .catch(err => callback(err, null));
 }
 
-async function tileSetCompleter(line: string): Promise<CompletionResult> {
-  const matches = TileSets.filter(set => set.startsWith(line));
-  return [matches.length ? matches : TileSets, line];
+function makeCompleter(candidates: Array<string>): AsyncCompleter {
+  return async (line: string) => {
+    const matches = candidates.filter(set => set.startsWith(line));
+    if (matches.length) {
+      return [matches, line];
+    }
+    return [[], line];
+  };
+}
+const TileSetCompleter = makeCompleter(TileSets);
+const MissionTypeCompleter = makeCompleter(MissionTypes);
+const BriefingLocationCompleter = makeCompleter(BriefingLocations);
+
+async function questionWithCompleter(
+  rl: readline,
+  completer: AsyncCompleter,
+  question: string,
+): Promise<string> {
+  pushCompleter(completer);
+  try {
+    return await rl.question(question);
+  } finally {
+    popCompleter();
+  }
 }
 
 async function handleLine(rl: readline, line: string): Promise<void> {
@@ -69,9 +90,7 @@ async function handleLine(rl: readline, line: string): Promise<void> {
     console.log(board.getTileLists());
   } else if (line.startsWith('addtiles')) {
 
-    pushCompleter(tileSetCompleter);
-    const title = await rl.question('Tile Set: ');
-    popCompleter(completer);
+    const title = await questionWithCompleter(rl, TileSetCompleter, 'Tile Set: ');
 
     const tilesString = await rl.question('Tiles (space separated): ');
     const tiles = tilesString.trim().replace(/,/, '').split(' ');
@@ -97,10 +116,10 @@ async function handleLine(rl: readline, line: string): Promise<void> {
     const name = await rl.question('New Mission Name: ');
     board.setName(name);
   } else if (line.startsWith('location')) {
-    const location = await rl.question('Briefing Location: ');
+    const location = await questionWithCompleter(rl, BriefingLocationCompleter, 'Briefing Location: ');
     board.setBriefingLocation(location);
   } else if (line.startsWith('type')) {
-    const type = await rl.question('Mission Type: ');
+    const type = await questionWithCompleter(rl, MissionTypeCompleter, 'Mission Type: ');
     board.setMapType(type);
   } else if (line.startsWith('info')) {
     console.log({
