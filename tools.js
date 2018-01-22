@@ -334,6 +334,10 @@ export class TerrainTool extends Tool {
         lines.push(`${v} extra ${k}`);
       }
     });
+    if (lines.length === 0) {
+      alert('All tiles check out');
+      return;
+    }
 
     alert(lines.join('\n'));
   }
