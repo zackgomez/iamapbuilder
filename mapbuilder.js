@@ -12,6 +12,8 @@ import {
   makeUpdateSheetPropertiesRequest,
 } from './converter';
 
+import { genEditMode } from './edit_map_tiles';
+
 import Board from './board';
 
 const sheets = google.sheets('v4');
@@ -158,6 +160,31 @@ async function genShrinkSpreadsheet(
   await genBatchUpdate(auth, spreadsheetId, requests);
 }
 
+async function genCreateMap(
+  cmd: any,
+): Promise<void> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  const board = Board.defaultBoard();
+  await genEditMode(rl, null, board);
+}
+
+async function genEditFile(
+  file: string,
+  cmd: any,
+): Promise<any> {
+  const serialized = await fs.readFile(file);
+  const board = Board.fromSerialized(serialized);
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  await genEditMode(rl, file, board);
+}
+
 function wrapAsyncCommand(asyncCommand) {
   return function(a, b, c, d, e) {
     asyncCommand.apply(null, arguments).catch(e => {
@@ -180,5 +207,13 @@ commander
 commander
   .command('shrink <spreadsheetId>')
   .action(wrapAsyncCommand(genShrinkSpreadsheet));
+
+commander
+  .command('new')
+  .action(wrapAsyncCommand(genCreateMap));
+
+commander
+  .command('edit <file>')
+  .action(wrapAsyncCommand(genEditFile));
 
 commander.parse(process.argv);

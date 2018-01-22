@@ -55,6 +55,7 @@ export default class Board {
     this.cellRows = {};
     this.verticalEdgeRows = {};
     this.horizontalEdgeRows = {};
+    this.tileLists = [];
   }
 
   getWidth(): number {
@@ -273,7 +274,7 @@ export default class Board {
     return board;
   }
   static defaultBoard(): Board {
-    return new Board(26, 50);
+    return new Board(26, 50, '<unset>', '<unset>', '<unset>');
   }
 
   name: string;

@@ -26,24 +26,25 @@ async function getFilename(rl: readline.Interface): Promise<string> {
 
 async function handleLine(rl: readline, line: string): Promise<void> {
   let {board} = state;
+  board = nullthrows(board);
 
   line = line.trim();
   if (line.startsWith('list')) {
-    board = nullthrows(board);
     console.log(board.getTileLists());
-  } else if (line.startsWith('add')) {
-    board = nullthrows(board);
-
+  } else if (line.startsWith('addtiles')) {
     const title = await rl.question('Tile Set: ');
     const tilesString = await rl.question('Tiles (space separated): ');
     const tiles = tilesString.trim().replace(/,/, '').split(' ');
     board.addTileList({title, tiles});
     console.log(board.getTileLists());
   } else if (line.startsWith('save')) {
-    board = nullthrows(board);
-    await fs.writeFile(state.filename, board.serialize());
+    let filename = state.filename;
+    if (!filename || filename.length === 0) {
+      filename = await rl.question('Save as?');
+    }
+    await fs.writeFile(filename, board.serialize());
+    state.filename = filename;
   } else if (line.startsWith('check')) {
-    board = nullthrows(board);
     const tileToCount = new Map();
     for (let r = 0; r < board.getHeight(); r++) {
       for (let c = 0; c < board.getWidth(); c++) {
@@ -65,20 +66,32 @@ async function handleLine(rl: readline, line: string): Promise<void> {
     console.log(tileToCount);
   } else if (line.startsWith('exit')) {
     process.exit(0);
+  } else if (line.startsWith('name')) {
+    const name = await rl.question('New Mission Name: ');
+    board.setName(name);
+  } else if (line.startsWith('location')) {
+    const location = await rl.question('Briefing Location: ');
+    board.setBriefingLocation(location);
+  } else if (line.startsWith('type')) {
+    const type = await rl.question('Mission Type: ');
+    board.setMapType(type);
+  } else if (line.startsWith('info')) {
+    console.log({
+      name: board.getName(),
+      type: board.getMapType(),
+      briefingLocation: board.getBriefingLocation(),
+      tiles: board.getTileLists(),
+      height: board.getHeight(),
+      width: board.getWidth(),
+    });
+  } else {
+    console.log(`unknown command '${line}'`);
   }
 }
 
-async function main() {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  const filename = await getFilename(rl);
+export async function genEditMode(rl: readline, filename: ?string, board: Board): Promise<void> {
   state.filename = filename;
-
-  const data = await fs.readFile(filename);
-  state.board = Board.fromSerialized(data);
+  state.board = board;
 
   rl.prompt();
   rl.on('line', async line => {
@@ -94,7 +107,21 @@ async function main() {
   });
 }
 
+async function main() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const filename = await getFilename(rl);
+  const data = await fs.readFile(filename);
+
+  await genEditMode(rl, filename, Board.fromSerialized(data));
+}
+
+/*
 main().catch(e => {
   console.error(e);
   process.exit(-1);
 });
+*/
