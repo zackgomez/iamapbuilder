@@ -33,6 +33,7 @@
   "scripts": {
     "start": "webpack && babel-node server.js",
     "format": "prettier --single-quote --trailing-comma all --no-bracket-spacing --print-width 90 --write '*.js'",
-    "mapbuilder": "babel-node mapbuilder.js"
+    "mapbuilder": "babel-node mapbuilder.js",
+    "mb": "babel-node mapbuilder.js"
   }
 }
