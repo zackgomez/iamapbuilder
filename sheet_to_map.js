@@ -274,7 +274,11 @@ function convertSheet(sheet: any): Board {
     }
 
     const edges = extractEdges(cell, x, y);
+
     edges.forEach(({x, y, edge, dir}) => {
+      if (edge === 'Nothing') {
+        return;
+      }
       const existing = board.getEdge(x, y, dir)
       if (edge === existing) {
         return;
