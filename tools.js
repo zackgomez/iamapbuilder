@@ -294,6 +294,7 @@ export class TerrainTool extends Tool {
   onUpload(state: UIState, context: ToolContext): void {
     const fileInput: HTMLInputElement = (document.getElementById('fileInput'): any);
     if (fileInput) {
+      fileInput.value = '';
       let count = 0;
       const cb = () => {
         if (count++ !== 0) {

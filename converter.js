@@ -347,7 +347,6 @@ function getSheetWidth(map: any): number {
 }
 
 function getSheetProperties(sheetId: ?number, map: any): any {
-  // TODO also compute max col here
   return {
     sheetId,
     title: map.name,
