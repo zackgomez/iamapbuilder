@@ -3,8 +3,8 @@
 import express from 'express';
 import fs from 'mz/fs';
 
-//import config from './webpack.config.js';
-//const compiler = require('webpack')(config);
+import config from './webpack.config.js';
+const compiler = require('webpack')(config);
 
 let app = express();
 
@@ -19,7 +19,7 @@ app.set('host', process.env.HOST || '0.0.0.0');
 app.use('/', router);
 
 router.get('/map/:index', async (req, res) => {
-  const indexContent = await fs.readFile('maps/map_index.json');
+  const indexContent = await fs.readFile('map_index.json');
   const mapList = JSON.parse(indexContent);
   const index = req.params.index;
 
@@ -30,11 +30,10 @@ router.get('/map/:index', async (req, res) => {
 
   const map = mapList[index];
   const filename = map.toLowerCase().replace(/ /g, '_').replace(/[^a-z_]/g, '') + '.json';
-  console.log(filename);
 
 
   const options = {
-    root: __dirname + '/downloads/',
+    root: __dirname + '/maps/',
     dotfiles: 'deny',
     headers: {
       'x-timestamp': Date.now(),

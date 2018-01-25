@@ -325,6 +325,31 @@ export class TerrainTool extends Tool {
     reader.readAsText(files.item(0));
     context.setFilename(files.item(0).name);
   }
+  onFetch(state: UIState, context: ToolContext): void {
+    const index = parseInt(prompt('Index?'));
+    if (index === NaN) {
+      return;
+    }
+    this.fetchIndex(index, context);
+  }
+  onNext(state: UIState, context: ToolContext): void {
+    const matches = state.filename && state.filename.match(/index\.(\d+)/);
+    let index = 0;
+    if (matches && matches.length === 2) {
+      index = parseInt(matches[1]) + 1
+    } 
+    this.fetchIndex(index, context);
+  }
+  fetchIndex(index: number, context: ToolContext): void {
+    fetch(`/map/${index}`)
+      .then(response => response.text())
+      .then(data => {
+        console.log(data);
+        const board = Board.fromSerialized(data);
+        context.setBoard(board);
+        context.setFilename('index.'+index);
+      }).catch(e => console.error(e));
+  }
   onComputeEdges(state: UIState, context: ToolContext): void {
     context.board.applyEdgeRules();
   }
@@ -405,6 +430,8 @@ export class TerrainTool extends Tool {
       ['New', () => this.onNew(state, context)],
       ['Save', () => this.onSave(state, context)],
       ['Load', () => this.onLoad(state, context)],
+      ['Fetch', () => this.onFetch(state, context)],
+      ['Next', () => this.onNext(state, context)],
       ['Download', () => this.onDownload(state, context)],
       ['Upload', () => this.onUpload(state, context)],
     ];
