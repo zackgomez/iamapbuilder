@@ -2,7 +2,6 @@
 import commander from 'commander';
 import fs from 'mz/fs';
 import readline from 'mz/readline';
-import google from 'googleapis';
 
 import {genAuth} from './auth';
 import {
@@ -11,56 +10,14 @@ import {
   makeUpdateDimensionPropertiesRequests,
   makeUpdateSheetPropertiesRequest,
 } from './converter';
+import {
+  genBatchUpdate,
+  genSpreadsheets,
+} from './google-api-wrapper';
 
 import { genEditMode } from './edit_map_tiles';
 
 import Board from './board';
-
-const sheets = google.sheets('v4');
-
-function genBatchUpdate(
-  auth,
-  spreadsheetId: string,
-  requests: Array<any>,
-): Promise<any> {
-  return new Promise((resolve, reject) => {
-    sheets.spreadsheets.batchUpdate({
-      auth,
-      spreadsheetId,
-      resource: {requests},
-    }, (err, response) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(response);
-    });
-  });
-}
-
-function genSpreadsheets(
-  auth,
-  spreadsheetId: string,
-  range: ?string,
-  includeGridData: ?bool,
-): Promise<any> {
-  includeGridData = includeGridData || false;
-  let rangeParams = range ? {ranges: [range]} : {};
-  return new Promise((resolve, reject) => {
-    sheets.spreadsheets.get({
-      auth,
-      spreadsheetId,
-      includeGridData,
-      ...rangeParams,
-    }, (err, response) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(response);
-    });
-  });
-}
 
 async function genDownloadSpreadsheetCommand(
   spreadsheetId: string, 
