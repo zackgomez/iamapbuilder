@@ -130,6 +130,51 @@ async function handleLine(rl: readline, line: string): Promise<void> {
       height: board.getHeight(),
       width: board.getWidth(),
     });
+  } else if (line.startsWith('shrink')) {
+    let lastX = board.getWidth() - 1;
+    for (; lastX >= 0; lastX--) {
+      let hit = false;
+      for (let y = 0; y < board.getHeight(); y++) {
+        if (board.getCell(lastX, y).inBounds) {
+          hit = true;
+          break;
+        }
+      }
+      if (hit) {
+        break;
+      }
+    }
+    let lastY = board.getHeight() - 1;
+    for (; lastY >= 0; lastY--) {
+      let hit = false;
+      for (let x = 0; x <= lastX; x++) {
+        if (board.getCell(x, lastY).inBounds) {
+          hit = true;
+          break;
+        }
+      }
+      if (hit) {
+        break;
+      }
+    }
+
+    const newWidth = lastX + 1;
+    const newHeight = lastY + 1;
+
+    const answer = await rl.question(`Go from size ${board.getWidth()} x ${board.getHeight()} to ${newWidth} x ${newHeight}? (y/n)`);
+    if (answer === 'y') {
+      board.setWidth(newWidth);
+      board.setHeight(newHeight);
+      console.log('Shrank board');
+    } else {
+      console.log('Not shrinking');
+    }
+  } else if (line.startsWith('compact')) {
+    const oldSize = board.serialize().length;
+    board.applyEdgeRules();
+    board.compact();
+    const newSize = board.serialize().length;
+    console.log(`Compaction saved ${oldSize - newSize} bytes out of ${oldSize}`);
   } else {
     console.log(`unknown command '${line}'`);
   }

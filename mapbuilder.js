@@ -168,6 +168,31 @@ async function genConvertSpreadsheet(
   }
 }
 
+async function genCompactFile(
+  file: string,
+  files: ?Array<string>,
+  cmd: any,
+): Promise<void> {
+  let allFiles = [file];
+  if (files && files.length > 0) {
+    allFiles = allFiles.concat(files);
+  }
+  for (const file of allFiles) {
+    console.log(`Compacting ${file}`);
+
+    const serialized = await fs.readFile(file);
+    const board = Board.fromSerialized(serialized);
+
+    const oldSize = board.serialize().length;
+    board.applyEdgeRules();
+    board.compact();
+    const newSize = board.serialize().length;
+    console.log(`Compaction saved ${oldSize - newSize} bytes out of ${oldSize}`);
+
+    await fs.writeFile(file, board.serialize());
+  }
+}
+
 function wrapAsyncCommand(asyncCommand) {
   return function(a, b, c, d, e) {
     asyncCommand.apply(null, arguments).catch(e => {
@@ -198,6 +223,10 @@ commander
 commander
   .command('edit <file>')
   .action(wrapAsyncCommand(genEditFile));
+
+commander
+  .command('compact <file> [files...]')
+  .action(wrapAsyncCommand(genCompactFile));
 
 commander
   .command('convertSpreadsheet <spreadsheetId>')

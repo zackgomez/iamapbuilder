@@ -77,6 +77,12 @@ export default class Board {
     return this.tileLists;
   }
 
+  setWidth(width: number): void {
+    this.width = width;
+  }
+  setHeight(height: number): void {
+    this.height = height;
+  }
   setName(name: string): void {
     this.name = name;
   }
@@ -248,7 +254,43 @@ export default class Board {
   }
 
   // Compact internal storage, removing redundant/default values
-  compact(): void {}
+  compact(): void {
+    _.each(this.cellRows, (row, y) => {
+      _.each(row, (cell: Cell, x) => {
+        if (!cell.inBounds) {
+          delete row[x];
+          return;
+        }
+        if (!cell.difficultTerrain) {
+          delete cell.difficultTerrain;
+        }
+        if (!cell.startingPoint) {
+          delete cell.startingPoint;
+        }
+        if (!cell.tileNumber || cell.tileNumber.length === 0) {
+          delete cell.tileNumber;
+        }
+      });
+      if (_.isEmpty(row)) {
+        delete this.cellRows[y];
+      }
+    });
+    this._compactEdgeRows(this.horizontalEdgeRows);
+    this._compactEdgeRows(this.verticalEdgeRows);
+  }
+
+  _compactEdgeRows(edgeRows: EdgeRows): void {
+    _.each(edgeRows, (row, y) => {
+      _.each(row, (edge: Edge, x) => {
+        if (edge === 'Nothing') {
+          delete row[x];
+        }
+      });
+      if (_.isEmpty(row)) {
+        delete edgeRows[y];
+      }
+    });
+  }
 
   serialize(): string {
     return JSON.stringify({
@@ -285,6 +327,8 @@ export default class Board {
   width: number;
   height: number;
   cellRows: {[row_index: number]: {[col_index: number]: Cell}};
-  verticalEdgeRows: {[row_index: number]: {[col_index: number]: Edge}};
-  horizontalEdgeRows: {[row_index: number]: {[col_index: number]: Edge}};
+  verticalEdgeRows: EdgeRows;
+  horizontalEdgeRows: EdgeRows;
 }
+
+type EdgeRows = {[row_index: number]: {[col_index: number]: Edge}};
