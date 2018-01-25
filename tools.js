@@ -333,22 +333,48 @@ export class TerrainTool extends Tool {
     this.fetchIndex(index, context);
   }
   onNext(state: UIState, context: ToolContext): void {
+    const index = this.getCurrentIndex(state) || -1;
+    this.fetchIndex(index + 1, context);
+  }
+  onPrev(state: UIState, context: ToolContext): void {
+    const index = this.getCurrentIndex(state) || 1;
+    this.fetchIndex(index - 1, context);
+  }
+  getCurrentIndex(state: UIState): ?number {
     const matches = state.filename && state.filename.match(/index\.(\d+)/);
-    let index = 0;
     if (matches && matches.length === 2) {
-      index = parseInt(matches[1]) + 1
-    } 
-    this.fetchIndex(index, context);
+      return parseInt(matches[1]);
+    }
+    return null;
   }
   fetchIndex(index: number, context: ToolContext): void {
     fetch(`/map/${index}`)
       .then(response => response.text())
       .then(data => {
-        console.log(data);
         const board = Board.fromSerialized(data);
         context.setBoard(board);
         context.setFilename('index.'+index);
       }).catch(e => console.error(e));
+  }
+  onPut(state: UIState, context: ToolContext): void {
+    const index = this.getCurrentIndex(state);
+    if (!index) {
+      return;
+    }
+
+    fetch(
+      `/map/${index}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          serialized: context.board.serialize(),
+        }),
+        headers: new Headers({
+          'Content-Type': 'application/json'
+        }),
+      },
+    ).then(res => res.json())
+    .then(res => console.log(res));
   }
   onComputeEdges(state: UIState, context: ToolContext): void {
     context.board.applyEdgeRules();
@@ -428,12 +454,14 @@ export class TerrainTool extends Tool {
 
     const FILE_BUTTONS = [
       ['New', () => this.onNew(state, context)],
-      ['Save', () => this.onSave(state, context)],
-      ['Load', () => this.onLoad(state, context)],
+      //['Save', () => this.onSave(state, context)],
+      //['Load', () => this.onLoad(state, context)],
       ['Fetch', () => this.onFetch(state, context)],
+      ['Put', () => this.onPut(state, context)],
+      ['Prev', () => this.onPrev(state, context)],
       ['Next', () => this.onNext(state, context)],
-      ['Download', () => this.onDownload(state, context)],
-      ['Upload', () => this.onUpload(state, context)],
+      //['Download', () => this.onDownload(state, context)],
+      //['Upload', () => this.onUpload(state, context)],
     ];
     const MAP_BUTTONS = [
       ['Compute Edges', () => this.onComputeEdges(state, context)],

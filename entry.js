@@ -137,6 +137,8 @@ function getEdgeLayer(board: Board) {
   return edgeGraphics;
 }
 
+const SHOW_MOUSE_INFO = false;
+
 let stage = null;
 function render() {
   if (stage) {
@@ -155,17 +157,19 @@ function render() {
     root.addChild(makeUILayer(uiState, board));
   }
 
-  let mouseInfo = new PIXI.Text(
-    'Derp',
-    new PIXI.TextStyle({
-      fontSize: 12,
-      stroke: '#000000',
-      fill: '#000000',
-    }),
-  );
-  mouseInfo.text = `Mouse x: ${mousePosition.x} y: ${mousePosition.y}`;
+  if (SHOW_MOUSE_INFO) {
+    let mouseInfo = new PIXI.Text(
+      'Derp',
+      new PIXI.TextStyle({
+        fontSize: 12,
+        stroke: '#000000',
+        fill: '#000000',
+      }),
+    );
+    mouseInfo.text = `Mouse x: ${mousePosition.x} y: ${mousePosition.y}`;
 
-  root.addChild(mouseInfo);
+    root.addChild(mouseInfo);
+  }
   stage = root;
 
   renderer.render(root);
