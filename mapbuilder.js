@@ -16,6 +16,7 @@ import {
 } from './google-api-wrapper';
 
 import { genEditMode } from './edit_map_tiles';
+import { convertSheet } from './sheet_to_map';
 
 import Board from './board';
 
@@ -134,6 +135,39 @@ async function genEditFile(
   await genEditMode(file, board);
 }
 
+async function genConvertSpreadsheet(
+  sheetId: string,
+  cmd: any,
+): Promise<void> {
+  const auth = await genAuth();
+  const indexContent = await fs.readFile('./maps/map_index.json');
+  const titles = JSON.parse(indexContent);
+
+  const start = (cmd.start && parseInt(cmd.start)) || 0;
+
+  for (let i = start; i < titles.length; i++) {
+    const title = titles[i];
+
+    console.log(`Converting ${i}/${titles.length} "${title}"`);
+
+    const spreadsheet = await genSpreadsheets(auth, sheetId, title, true);
+    const board = convertSheet(spreadsheet.sheets[0]);
+
+    const filename = 'downloads/' + board.getName()
+      .toLowerCase()
+      .replace(/ /g, '_')
+      .replace(/[^a-z_]/g, '')
+      .concat('.json');
+
+    console.log(`Writing ${title} to ${filename}`);
+    await fs.writeFile(filename, board.serialize());
+
+    if (cmd.single) {
+      break;
+    }
+  }
+}
+
 function wrapAsyncCommand(asyncCommand) {
   return function(a, b, c, d, e) {
     asyncCommand.apply(null, arguments).catch(e => {
@@ -164,5 +198,11 @@ commander
 commander
   .command('edit <file>')
   .action(wrapAsyncCommand(genEditFile));
+
+commander
+  .command('convertSpreadsheet <spreadsheetId>')
+  .option('-s, --start <index>', 'start index')
+  .option('-1, --single', 'only convert 1 sheet')
+  .action(wrapAsyncCommand(genConvertSpreadsheet));
 
 commander.parse(process.argv);

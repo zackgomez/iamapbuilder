@@ -200,7 +200,7 @@ function enumerateCells(
   });
 };
 
-function convertSheet(sheet: any): Board {
+export function convertSheet(sheet: any): Board {
   const title = sheet.properties.title;
   const sheetRows = sheet.properties.gridProperties.rowCount;
   const sheetCols = sheet.properties.gridProperties.columnCount;
@@ -241,7 +241,7 @@ function convertSheet(sheet: any): Board {
         type = matches[1];
       }
 
-      matches = text.match(/(.*):\s*((\d\d[AB])+.*)/);
+      matches = text.match(/^([^:]*):\s*((\d\d[AB])+.*)/);
       if (matches && matches.length === 4) {
         tilePairs.push([matches[1], matches[2]]);
       }
