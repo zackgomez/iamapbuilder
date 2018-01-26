@@ -22,8 +22,10 @@ app.set('host', process.env.HOST || '0.0.0.0');
 
 app.use('/', router);
 
+const MAP_INDEX_PATH = 'map_index.json';
+
 async function genMapFilenameFromIndex(index: number): Promise<string> {
-  const indexContent = await fs.readFile('map_index.json');
+  const indexContent = await fs.readFile(MAP_INDEX_PATH);
   const mapList = JSON.parse(indexContent);
 
   if (index >= mapList.length) {
@@ -36,7 +38,7 @@ async function genMapFilenameFromIndex(index: number): Promise<string> {
 }
 
 router.get('/map/list', async (req, res) => {
-  //res.sendFile(
+  res.sendFile(__dirname + '/' + MAP_INDEX_PATH);
 });
 
 router.get('/map/:index', async (req, res) => {

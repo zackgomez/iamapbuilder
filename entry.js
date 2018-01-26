@@ -6,14 +6,17 @@ import 'pixi.js';
 import Board from './board.js';
 import _ from 'lodash';
 import nullthrows from 'nullthrows';
+import React from 'react';
+import ReactDOM from 'react-dom';
 
 import type {ToolEnum, UIState, Tool, ToolContext} from './tools.js';
 import {getToolDefinitions} from './tools.js';
 import {makeButton, buttonizeText} from './UIUtils.js';
 import {getGridLayer, getEdgeLayer} from './renderer.js';
+import MapViewerApp from './viewer';
 
-const VIEWPORT_WIDTH = 1440;
-const VIEWPORT_HEIGHT = 800;
+const VIEWPORT_WIDTH = 0//1440;
+const VIEWPORT_HEIGHT = 0//800;
 
 declare var PIXI: any;
 
@@ -232,3 +235,8 @@ function setFilename(filename: string): void {
   setBoard(board);
   render();
 })();
+
+ReactDOM.render(
+  <MapViewerApp />,
+  nullthrows(document.getElementById('app-container')),
+);
