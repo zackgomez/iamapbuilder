@@ -6,8 +6,7 @@ import fs from 'mz/fs';
 
 import Board from './board';
 
-import config from './webpack.config.js';
-const compiler = require('webpack')(config);
+import {filenameFromMapName} from './maps';
 
 let app = express();
 
@@ -31,9 +30,14 @@ async function genMapFilenameFromIndex(index: number): Promise<string> {
     throw new RangeError('Index out of bounds');
   }
 
-  const map = mapList[index];
-  return map.toLowerCase().replace(/ /g, '_').replace(/[^a-z_]/g, '') + '.json';
+  const item = mapList[index];
+  const map = item.title;
+  return filenameFromMapName(map);
 }
+
+router.get('/map/list', async (req, res) => {
+  //res.sendFile(
+});
 
 router.get('/map/:index', async (req, res) => {
   const index = parseInt(req.params.index);
@@ -55,8 +59,6 @@ router.post('/map/:index', async (req, res) => {
 
   const filename = await genMapFilenameFromIndex(index);
   const path = 'maps/' + filename;
-
-  console.log(req.body.serialized);
 
   const existingData = await fs.readFile(path);
   const existingBoard = Board.fromSerialized(existingData);

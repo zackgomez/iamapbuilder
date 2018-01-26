@@ -18,6 +18,8 @@
     "mz": "^2.7.0",
     "nullthrows": "^1.0.0",
     "pixi.js": "^4.6.2",
+    "react": "^16.2.0",
+    "react-autosuggest": "^9.3.2",
     "webpack": "^3.10.0"
   },
   "devDependencies": {
