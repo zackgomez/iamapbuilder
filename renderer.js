@@ -1,5 +1,9 @@
 /* @flow */
 import 'pixi.js';
+import * as React from 'react';
+import ReactDom from 'react-dom';
+import nullthrows from 'nullthrows';
+
 import Board from './board';
 
 declare var PIXI: any;
@@ -8,7 +12,7 @@ const TILE_NUMBER_TEXT_STYLE = new PIXI.TextStyle({
   fontSize: 15,
 });
 
-export function getGridLayer(board: Board, scale: number): any {
+export function makeGridLayer(board: Board, scale: number): any {
   const width = board.getWidth();
   const height = board.getHeight();
   const grid = new PIXI.Graphics();
@@ -48,7 +52,7 @@ export function getGridLayer(board: Board, scale: number): any {
   return grid;
 }
 
-export function getEdgeLayer(board: Board, scale: number): any {
+export function makeEdgeLayer(board: Board, scale: number): any {
   let edgeGraphics = new PIXI.Graphics();
 
   for (let x = 0; x <= board.getWidth(); x++) {
@@ -107,4 +111,94 @@ export function getEdgeLayer(board: Board, scale: number): any {
   }
 
   return edgeGraphics;
+}
+
+type Props = {
+  board: Board,
+}
+
+export class BoardRenderer extends React.Component<Props> {
+  renderer: any;
+  container: ?HTMLDivElement;
+  root: ?any;
+
+  componentDidMount() {
+  }
+
+  componentWillUnmount() {
+    this.cleanup();
+  }
+
+  cleanup() {
+    if (this.root) {
+      this.root.destroy({children: true});
+      this.root = null;
+    }
+    if (this.renderer) {
+      this.renderer.destroy();
+      this.renderer = null;
+    }
+  }
+
+  setContainer(container: ?HTMLDivElement): void {
+    if (this.renderer) {
+      return;
+    }
+	this.container = container;
+
+    if (!container) {
+      return;
+    }
+
+    console.log('create renderer');
+
+	const {board} = this.props;
+
+	const docElement = nullthrows(document.documentElement);
+
+    const PADDING = 10;
+    const screenWidth = docElement.clientWidth - 2 * PADDING;
+    const screenHeight = docElement.clientHeight - 2 * PADDING;
+
+    const scale = Math.min(Math.floor(Math.min(
+      screenWidth / board.getWidth(),
+      screenHeight / board.getHeight(),
+    )), 50);
+
+
+	const renderer = new PIXI.autoDetectRenderer(
+      board.getWidth() * scale + 2 * PADDING,
+      board.getHeight() * scale + 2 * PADDING,
+	);
+	renderer.backgroundColor = 0xffffff;
+	renderer.autoResize = true;
+
+    console.log(scale, board.getWidth(), board.getHeight(),
+        renderer.width,
+        renderer.height);
+
+	this.renderer = renderer;
+
+	nullthrows(container).appendChild(renderer.view);
+	renderer.view.addEventListener('contextmenu', e => {
+	  e.preventDefault();
+	});
+
+    const root = new PIXI.Container();
+    const layers = [
+      makeGridLayer(board, scale),
+      makeEdgeLayer(board, scale),
+    ];
+    layers.forEach(layer => {
+      layer.x = PADDING;
+      layer.y = PADDING;
+      root.addChild(layer);
+    });
+
+    renderer.render(root);
+  }
+
+  render() {
+    return <div ref={(container) => this.setContainer(container)} />;
+  }
 }

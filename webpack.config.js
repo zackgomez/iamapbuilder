@@ -7,6 +7,7 @@ const config = {
     path: __dirname + '/build/',
     filename: 'bundle.js',
   },
+  devtool: 'eval-source-map',
   module: {
     rules: [
       {

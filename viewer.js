@@ -3,10 +3,11 @@
 import * as React from 'react';
 import ReactDom from 'react-dom';
 import Autosuggest from 'react-autosuggest';
-
-import {getGridLayer, getEdgeLayer} from './renderer.js';
+import Board from './board';
+import { BoardRenderer } from './renderer';
 
 type IndexItem = {
+  index: number,
   title: string,
   location: string,
   type: string,
@@ -18,6 +19,8 @@ type State = {
   index?: Array<IndexItem>,
   suggestions: Array<IndexItem>,
   value: string,
+
+  board: ?Board,
 };
 
 // Teach Autosuggest how to calculate suggestions for any given input value.
@@ -51,6 +54,7 @@ export default class MapViewerApp extends React.Component<Props, State> {
     this.state = {
 	  suggestions: [],
 	  value: '',
+      board: null,
 	};
   }
 
@@ -58,22 +62,25 @@ export default class MapViewerApp extends React.Component<Props, State> {
     fetch('/map/list')
       .then(resp => resp.json())
       .then(index => {
+        index = index.map((item, i) => {
+          item.index = i;
+          return item;
+        });
         this.setState({index});
       })
       .catch(error => {
         this.setState({error});
       });
   }
-  onChange = (event, { newValue }) => {
-	console.log('onchange', event, newValue);
+  onChange = (event: any, { newValue } : { newValue: string }) => {
     this.setState({
       value: newValue,
     });
   };
 
   // Autosuggest will call this function every time you need to update suggestions.
-  // You already implemented this logic above, so just use it.
-  onSuggestionsFetchRequested = ({ value }) => {
+  // You already implemented tthishis logic above, so just use it.
+  onSuggestionsFetchRequested = ({ value }: { value: string }) => {
     this.setState({
       suggestions: getSuggestions(this.state.index || [], value)
     });
@@ -86,15 +93,31 @@ export default class MapViewerApp extends React.Component<Props, State> {
     });
   };
 
-  onSuggestionSelected = (event, { suggestion }) => {
-	console.log(suggestion);
+  onSuggestionSelected = (
+	  event : any,
+	  { suggestion }: { suggestion: IndexItem }) => {
     this.setState({
 	  value: suggestion.title,
 	});
+    const {board} = this.state; 
+    if (board && board.title === suggestion.title) {
+      return;
+    }
+
+    console.log('selected', suggestion, board);
+
+    fetch(`/map/${suggestion.index}`)
+      .then(resp => resp.text())
+      .then(text => {
+        const board = Board.fromSerialized(text);
+        this.setState({
+          board,
+        });
+      });
   };
 
   render() {
-    const { value, suggestions } = this.state;
+    const { value, suggestions, board } = this.state;
 
     // Autosuggest will pass through all these props to the input.
     const inputProps = {
@@ -103,16 +126,23 @@ export default class MapViewerApp extends React.Component<Props, State> {
       onChange: this.onChange,
     };
 
+    const map = board
+      ? <BoardRenderer key={board.getName()} board={board} />
+      : null;
+
     return (
-      <Autosuggest
-        suggestions={suggestions}
-        onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-        onSuggestionsClearRequested={this.onSuggestionsClearRequested}
-        getSuggestionValue={getSuggestionValue}
-        renderSuggestion={renderSuggestion}
-        inputProps={inputProps}
-		onSuggestionSelected={this.onSuggestionSelected}
-      />
+      <React.Fragment>
+        <Autosuggest
+          suggestions={suggestions}
+          onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
+          onSuggestionsClearRequested={this.onSuggestionsClearRequested}
+          getSuggestionValue={getSuggestionValue}
+          renderSuggestion={renderSuggestion}
+          inputProps={inputProps}
+          onSuggestionSelected={this.onSuggestionSelected}
+        />
+        {map}
+      </React.Fragment>
     );
   }
 }

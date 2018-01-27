@@ -12,8 +12,10 @@ import ReactDOM from 'react-dom';
 import type {ToolEnum, UIState, Tool, ToolContext} from './tools.js';
 import {getToolDefinitions} from './tools.js';
 import {makeButton, buttonizeText} from './UIUtils.js';
-import {getGridLayer, getEdgeLayer} from './renderer.js';
+import {makeGridLayer, makeEdgeLayer} from './renderer.js';
 import MapViewerApp from './viewer';
+
+/*
 
 const VIEWPORT_WIDTH = 0//1440;
 const VIEWPORT_HEIGHT = 0//800;
@@ -50,8 +52,8 @@ function render() {
   const board = globalBoard;
   if (board) {
     const layers = [
-      getGridLayer(board, SCALE),
-      getEdgeLayer(board, SCALE),
+      makeGridLayer(board, SCALE),
+      makeEdgeLayer(board, SCALE),
       makeUILayer(uiState, board),
     ];
     _.each(layers, layer => {
@@ -235,6 +237,7 @@ function setFilename(filename: string): void {
   setBoard(board);
   render();
 })();
+*/
 
 ReactDOM.render(
   <MapViewerApp />,
