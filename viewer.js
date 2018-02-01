@@ -104,8 +104,6 @@ export default class MapViewerApp extends React.Component<Props, State> {
       return;
     }
 
-    console.log('selected', suggestion, board);
-
     fetch(`/map/${suggestion.index}`)
       .then(resp => resp.text())
       .then(text => {
@@ -130,9 +128,14 @@ export default class MapViewerApp extends React.Component<Props, State> {
       ? <BoardRenderer key={board.getName()} board={board} />
       : null;
 
+    const theme = {
+      float: 'left',
+    };
+
     return (
       <React.Fragment>
         <Autosuggest
+          theme={theme}
           suggestions={suggestions}
           onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
           onSuggestionsClearRequested={this.onSuggestionsClearRequested}

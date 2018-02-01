@@ -3,6 +3,7 @@ import 'pixi.js';
 import * as React from 'react';
 import ReactDom from 'react-dom';
 import nullthrows from 'nullthrows';
+import themeable from 'react-themeable';
 
 import Board from './board';
 
@@ -158,13 +159,12 @@ export class BoardRenderer extends React.Component<Props> {
 
     const PADDING = 10;
     const screenWidth = docElement.clientWidth - 2 * PADDING;
-    const screenHeight = docElement.clientHeight - 2 * PADDING;
+    const screenHeight = docElement.clientHeight - 2 * PADDING - 50;
 
     const scale = Math.min(Math.floor(Math.min(
       screenWidth / board.getWidth(),
       screenHeight / board.getHeight(),
     )), 50);
-
 
 	const renderer = new PIXI.autoDetectRenderer(
       board.getWidth() * scale + 2 * PADDING,
@@ -199,6 +199,11 @@ export class BoardRenderer extends React.Component<Props> {
   }
 
   render() {
-    return <div ref={(container) => this.setContainer(container)} />;
+    const theme = themeable({
+      width: '100%',
+      height: '100%',
+    });
+
+    return <div {...theme('canvas-container')} ref={(container) => this.setContainer(container)} />;
   }
 }
