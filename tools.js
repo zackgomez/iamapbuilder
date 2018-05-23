@@ -8,6 +8,8 @@ import Board from './board';
 import type {Cell, EdgeDirection, Edge} from './board';
 import {makeButton} from './UIUtils';
 import {checkBoardTiles} from './BoardUtils';
+import ApolloClient from 'apollo-boost';
+import gql from "graphql-tag";
 
 import FileSaver from 'file-saver';
 
@@ -36,6 +38,7 @@ export type ToolContext = {
   cellPositionFromEvent: (e: any) => Point,
   setBoard: (board: Board) => void,
   setFilename: (filename: string) => void,
+  apollo: ApolloClient;
 };
 
 export class Tool {
@@ -68,6 +71,14 @@ export class Tool {
 
 type TerrainSubtool = 'Cell' | 'Edge' | 'TileNumber';
 type CellType = 'OutOfBounds' | 'InBounds' | 'Difficult';
+
+const FetchMapQuery = gql`
+  query FetchMap($index: Int!) {
+    map(index: $index) {
+      data
+    }
+  }
+`;
 
 export class TerrainTool extends Tool {
   selectedSubtool_: TerrainSubtool = 'Cell';
@@ -348,13 +359,16 @@ export class TerrainTool extends Tool {
     return null;
   }
   fetchIndex(index: number, context: ToolContext): void {
-    fetch(`/map/${index}`)
-      .then(response => response.text())
-      .then(data => {
-        const board = Board.fromSerialized(data);
-        context.setBoard(board);
-        context.setFilename('index.'+index);
-      }).catch(e => console.error(e));
+    context.apollo.query({
+      query: FetchMapQuery,
+      variables: {index},
+    }).then(result => {
+      return result.data.map.data;
+    }).then(data => {
+      const board = Board.fromSerialized(data);
+      context.setBoard(board);
+      context.setFilename('index.'+index);
+    }).catch(e => console.error(e));
   }
   onPut(state: UIState, context: ToolContext): void {
     const index = this.getCurrentIndex(state);
@@ -362,19 +376,33 @@ export class TerrainTool extends Tool {
       return;
     }
 
-    fetch(
-      `/map/${index}`,
-      {
-        method: 'POST',
-        body: JSON.stringify({
-          serialized: context.board.serialize(),
-        }),
-        headers: new Headers({
-          'Content-Type': 'application/json'
-        }),
+    context.apollo.mutate({
+      mutation: gql`
+        mutation UpdateMap($index: Int!, $data: String!) {
+          update_map(index: $index, data: $data) {
+            success
+            map {
+              index
+            }
+          }
+        }
+      `,
+      variables: {
+        index,
+        data: context.board.serialize(),
       },
-    ).then(res => res.json())
-    .then(res => console.log(res));
+      refetchQueries: (result: any) => {
+        const variables = {index};
+        return [
+          {
+            query: FetchMapQuery,
+            variables,
+          },
+        ];
+      }
+    }).then(result => {
+      console.log(result);
+    });
   }
   onComputeEdges(state: UIState, context: ToolContext): void {
     context.board.applyEdgeRules();

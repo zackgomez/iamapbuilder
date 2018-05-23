@@ -5,6 +5,9 @@
   "author": "Zack Gomez <zack.gomez@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "apollo-boost": "^0.1.6",
+    "apollo-server": "^2.0.0-beta.2",
+    "apollo-server-express": "^2.0.0-beta.1",
     "babel-preset-react": "^6.24.1",
     "body-parser": "^1.18.2",
     "commander": "^2.13.0",
@@ -13,6 +16,8 @@
     "file-saver": "^1.3.3",
     "google-auth-library": "0.*",
     "googleapis": "^24.0.0",
+    "graphql": "^0.13.2",
+    "graphql-tag": "^2.9.2",
     "invariant": "^2.2.2",
     "isomorphic-fetch": "^2.2.1",
     "lodash": "^4.17.4",

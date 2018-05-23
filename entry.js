@@ -15,11 +15,14 @@ import {makeButton, buttonizeText} from './UIUtils.js';
 import {makeGridLayer, makeEdgeLayer} from './renderer.js';
 import MapViewerApp from './viewer';
 
-const SHOW_EDITOR = false;
+import ApolloClient from 'apollo-boost';
+
+
+const SHOW_EDITOR = true;
 
 if (SHOW_EDITOR) {
-  const VIEWPORT_WIDTH = 0//1440;
-  const VIEWPORT_HEIGHT = 0//800;
+  const VIEWPORT_WIDTH = 1440;
+  const VIEWPORT_HEIGHT = 800;
 
   declare var PIXI: any;
 
@@ -33,6 +36,10 @@ if (SHOW_EDITOR) {
       e.preventDefault();
     });
   }
+
+  let apolloClient = new ApolloClient({
+    uri: 'http://localhost:3000/graphql',
+  });
 
   const interactionManager = renderer.plugins.interaction;
 
@@ -98,6 +105,7 @@ if (SHOW_EDITOR) {
       cellPositionFromEvent,
       setBoard,
       setFilename,
+      apollo: apolloClient,
     };
   }
 
