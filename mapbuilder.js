@@ -4,6 +4,7 @@ import fs from 'mz/fs';
 import readline from 'mz/readline';
 
 import {genAuth} from './auth';
+import {checkBoardTiles} from './BoardUtils';
 import {
   makeCreateSheetRequest,
   makeUpdateCellsRequest,
@@ -18,6 +19,7 @@ import {
 import { genEditMode } from './edit_map_tiles';
 import { convertSheet } from './sheet_to_map';
 import {filenameFromMapName} from './maps';
+import * as _ from 'lodash';
 
 import Board from './board';
 
@@ -207,6 +209,13 @@ async function genValidateMaps(): Promise<void> {
     const board = Board.fromSerialized(fileContents);
     if (board.tileLists.length === 0) {
       console.log(`${filename} is missing tile list`);
+    }
+    const tileCheckResult = checkBoardTiles(board);
+    const badTileCheck = _.some(tileCheckResult, (count, tile) => {
+      return count !== 0;
+    });
+    if (badTileCheck) {
+      console.log(`${filename} fails tile check`);
     }
     // TODO more validation
   }
