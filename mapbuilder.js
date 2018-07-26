@@ -17,11 +17,12 @@ import {
 
 import { genEditMode } from './edit_map_tiles';
 import { convertSheet } from './sheet_to_map';
+import {filenameFromMapName} from './maps';
 
 import Board from './board';
 
 async function genDownloadSpreadsheetCommand(
-  spreadsheetId: string, 
+  spreadsheetId: string,
   range: string,
   cmd: Object,
 ): Promise<void> {
@@ -46,7 +47,7 @@ async function genDownloadSpreadsheetCommand(
 }
 
 async function genUploadSpreadsheet(
-  spreadsheetId: string, 
+  spreadsheetId: string,
   mapFilename: string,
   cmd: Object,
 ): Promise<void> {
@@ -193,6 +194,25 @@ async function genCompactFile(
   }
 }
 
+async function genValidateMaps(): Promise<void> {
+  const indexContent = await fs.readFile('map_index.json');
+  const mapIndex = JSON.parse(indexContent);
+
+  for (const index of mapIndex) {
+    const filename = filenameFromMapName(index.title);
+
+    const fileContents = await fs.readFile(`maps/${filename}`);
+    const mapData = JSON.parse(fileContents);
+
+    const board = Board.fromSerialized(fileContents);
+    if (board.tileLists.length === 0) {
+      console.log(`${filename} is missing tile list`);
+    }
+    // TODO more validation
+  }
+
+}
+
 function wrapAsyncCommand(asyncCommand) {
   return function(a, b, c, d, e) {
     asyncCommand.apply(null, arguments).catch(e => {
@@ -233,5 +253,9 @@ commander
   .option('-s, --start <index>', 'start index')
   .option('-1, --single', 'only convert 1 sheet')
   .action(wrapAsyncCommand(genConvertSpreadsheet));
+
+commander
+  .command('validate')
+  .action(wrapAsyncCommand(genValidateMaps));
 
 commander.parse(process.argv);
