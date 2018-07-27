@@ -344,7 +344,10 @@ export class TerrainTool extends Tool {
     this.fetchIndex(index, context);
   }
   onNext(state: UIState, context: ToolContext): void {
-    const index = this.getCurrentIndex(state) || -1;
+    let index = this.getCurrentIndex(state);
+    if (index === null) {
+      index = -1;
+    }
     this.fetchIndex(index + 1, context);
   }
   onPrev(state: UIState, context: ToolContext): void {
