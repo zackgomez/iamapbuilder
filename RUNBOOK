@@ -1,0 +1,26 @@
+## Add/update a map
+
+`yarn mb upload 1Nxbj_z5S5-0W6Rtz8fTcL8q4huaHOkZluT3trkDVsYM maps/xxx`
+
+get the spreadsheet ID from the URL of the sheet, make a duplicate for a new version
+
+
+## Make a PDF
+
+Go to google sheets, print 2 separate documents
+
+### Print TOC
+
+Use print settings
+Top Middle [Sheet Title]
+Bottom Middle [Page 1]
+
+
+### Print Maps
+
+Use print settings
+Top Middle [Sheet Title]
+Bottom Middle [Page 1]
+Fit to Height
+
+When saving to PDF in printer dialog, ignore blank TOC pages to get page numbers correct
