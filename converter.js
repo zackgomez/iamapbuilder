@@ -153,7 +153,12 @@ function renderLabelCell(title: string, value: string, valueColor: ?any): any {
   };
 }
 
-function renderTextCell(map: any, mapRenderInfo: MapRenderInfo, row: number, col: number) {
+function renderTextCell(
+  map: any,
+  mapRenderInfo: MapRenderInfo,
+  row: number,
+  col: number,
+) {
   if (col !== 0) {
     return;
   }
@@ -165,7 +170,11 @@ function renderTextCell(map: any, mapRenderInfo: MapRenderInfo, row: number, col
   const TILE_LIST_START_ROW = mapRenderInfo.maxRow + 2;
   const MISSION_INFO_START_ROW = TILE_LIST_START_ROW + map.tileLists.length + 1;
 
-  if (col === 0 && row >= TILE_LIST_START_ROW && row < TILE_LIST_START_ROW + map.tileLists.length) {
+  if (
+    col === 0 &&
+    row >= TILE_LIST_START_ROW &&
+    row < TILE_LIST_START_ROW + map.tileLists.length
+  ) {
     const tileList = map.tileLists[row - TILE_LIST_START_ROW];
     title = tileList.title;
     value = renderTileListValue(tileList);
@@ -243,8 +252,8 @@ function renderCell(map: any, mapRenderInfo: MapRenderInfo, row: number, col: nu
 }
 
 type MapRenderInfo = {
-  maxRow: number;
-  maxCol: number;
+  maxRow: number,
+  maxCol: number,
 };
 
 function computeMaxRow(map: any): number {
@@ -282,7 +291,7 @@ function computeMissionColor(map: any): any {
   const type = map.mapType.toLowerCase();
   if (type.startsWith('red')) {
     return {
-      red: 1
+      red: 1,
     };
   } else if (type.startsWith('gray')) {
     return {
@@ -307,7 +316,7 @@ function computeMissionColor(map: any): any {
 }
 
 export function makeUpdateCellsRequest(sheetId: number, map: any) {
-  const mapRenderInfo : MapRenderInfo = {
+  const mapRenderInfo: MapRenderInfo = {
     maxRow: computeMaxRow(map),
     maxCol: computeMaxCol(map),
   };
@@ -319,7 +328,7 @@ export function makeUpdateCellsRequest(sheetId: number, map: any) {
   // HACK:
   for (let r = 0; r < rowCount - 1; r++) {
     const values = [];
-    for (let c = 0; c < colCount - 1 ; c++) {
+    for (let c = 0; c < colCount - 1; c++) {
       values.push(renderCell(map, mapRenderInfo, r, c));
     }
     rows.push({values});
@@ -363,7 +372,7 @@ export function makeUpdateSheetPropertiesRequest(sheetId: number, map: any) {
     updateSheetProperties: {
       properties: getSheetProperties(sheetId, map),
       fields: 'title,tabColor,gridProperties',
-    }
+    },
   };
 }
 
@@ -384,16 +393,8 @@ function makeUpdateDimensionPropertiesRequest(sheetId: number, dimension, pixelS
 
 export function makeUpdateDimensionPropertiesRequests(sheetId: number): Array<any> {
   return [
-    makeUpdateDimensionPropertiesRequest(
-      sheetId,
-      'COLUMNS',
-      29,
-    ),
-    makeUpdateDimensionPropertiesRequest(
-      sheetId,
-      'ROWS',
-      30,
-    ),
+    makeUpdateDimensionPropertiesRequest(sheetId, 'COLUMNS', 29),
+    makeUpdateDimensionPropertiesRequest(sheetId, 'ROWS', 30),
   ];
 }
 

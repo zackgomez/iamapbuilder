@@ -116,15 +116,14 @@ export function makeEdgeLayer(board: Board, scale: number): any {
 
 type Props = {
   board: Board,
-}
+};
 
 export class BoardRenderer extends React.Component<Props> {
   renderer: any;
   container: ?HTMLDivElement;
   root: ?any;
 
-  componentDidMount() {
-  }
+  componentDidMount() {}
 
   componentWillUnmount() {
     this.cleanup();
@@ -145,7 +144,7 @@ export class BoardRenderer extends React.Component<Props> {
     if (this.renderer) {
       return;
     }
-	this.container = container;
+    this.container = container;
 
     if (!container) {
       return;
@@ -153,42 +152,45 @@ export class BoardRenderer extends React.Component<Props> {
 
     console.log('create renderer');
 
-	const {board} = this.props;
+    const {board} = this.props;
 
-	const docElement = nullthrows(document.documentElement);
+    const docElement = nullthrows(document.documentElement);
 
     const PADDING = 10;
     const screenWidth = docElement.clientWidth - 2 * PADDING;
     const screenHeight = docElement.clientHeight - 2 * PADDING - 50;
 
-    const scale = Math.min(Math.floor(Math.min(
-      screenWidth / board.getWidth(),
-      screenHeight / board.getHeight(),
-    )), 50);
+    const scale = Math.min(
+      Math.floor(
+        Math.min(screenWidth / board.getWidth(), screenHeight / board.getHeight()),
+      ),
+      50,
+    );
 
-	const renderer = new PIXI.autoDetectRenderer(
+    const renderer = new PIXI.autoDetectRenderer(
       board.getWidth() * scale + 2 * PADDING,
       board.getHeight() * scale + 2 * PADDING,
-	);
-	renderer.backgroundColor = 0xffffff;
-	renderer.autoResize = true;
+    );
+    renderer.backgroundColor = 0xffffff;
+    renderer.autoResize = true;
 
-    console.log(scale, board.getWidth(), board.getHeight(),
-        renderer.width,
-        renderer.height);
+    console.log(
+      scale,
+      board.getWidth(),
+      board.getHeight(),
+      renderer.width,
+      renderer.height,
+    );
 
-	this.renderer = renderer;
+    this.renderer = renderer;
 
-	nullthrows(container).appendChild(renderer.view);
-	renderer.view.addEventListener('contextmenu', e => {
-	  e.preventDefault();
-	});
+    nullthrows(container).appendChild(renderer.view);
+    renderer.view.addEventListener('contextmenu', e => {
+      e.preventDefault();
+    });
 
     const root = new PIXI.Container();
-    const layers = [
-      makeGridLayer(board, scale),
-      makeEdgeLayer(board, scale),
-    ];
+    const layers = [makeGridLayer(board, scale), makeEdgeLayer(board, scale)];
     layers.forEach(layer => {
       layer.x = PADDING;
       layer.y = PADDING;
@@ -204,6 +206,11 @@ export class BoardRenderer extends React.Component<Props> {
       height: '100%',
     });
 
-    return <div {...theme('canvas-container')} ref={(container) => this.setContainer(container)} />;
+    return (
+      <div
+        {...theme('canvas-container')}
+        ref={container => this.setContainer(container)}
+      />
+    );
   }
 }

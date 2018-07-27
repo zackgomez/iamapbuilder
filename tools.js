@@ -9,7 +9,7 @@ import type {Cell, EdgeDirection, Edge} from './board';
 import {makeButton} from './UIUtils';
 import {checkBoardTiles} from './BoardUtils';
 import ApolloClient from 'apollo-boost';
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
 import FileSaver from 'file-saver';
 
@@ -38,7 +38,7 @@ export type ToolContext = {
   cellPositionFromEvent: (e: any) => Point,
   setBoard: (board: Board) => void,
   setFilename: (filename: string) => void,
-  apollo: ApolloClient;
+  apollo: ApolloClient,
 };
 
 export class Tool {
@@ -359,16 +359,20 @@ export class TerrainTool extends Tool {
     return null;
   }
   fetchIndex(index: number, context: ToolContext): void {
-    context.apollo.query({
-      query: FetchMapQuery,
-      variables: {index},
-    }).then(result => {
-      return result.data.map.data;
-    }).then(data => {
-      const board = Board.fromSerialized(data);
-      context.setBoard(board);
-      context.setFilename('index.'+index);
-    }).catch(e => console.error(e));
+    context.apollo
+      .query({
+        query: FetchMapQuery,
+        variables: {index},
+      })
+      .then(result => {
+        return result.data.map.data;
+      })
+      .then(data => {
+        const board = Board.fromSerialized(data);
+        context.setBoard(board);
+        context.setFilename('index.' + index);
+      })
+      .catch(e => console.error(e));
   }
   onPut(state: UIState, context: ToolContext): void {
     const index = this.getCurrentIndex(state);
@@ -376,33 +380,35 @@ export class TerrainTool extends Tool {
       return;
     }
 
-    context.apollo.mutate({
-      mutation: gql`
-        mutation UpdateMap($index: Int!, $data: String!) {
-          update_map(index: $index, data: $data) {
-            success
-            map {
-              index
+    context.apollo
+      .mutate({
+        mutation: gql`
+          mutation UpdateMap($index: Int!, $data: String!) {
+            update_map(index: $index, data: $data) {
+              success
+              map {
+                index
+              }
             }
           }
-        }
-      `,
-      variables: {
-        index,
-        data: context.board.serialize(),
-      },
-      refetchQueries: (result: any) => {
-        const variables = {index};
-        return [
-          {
-            query: FetchMapQuery,
-            variables,
-          },
-        ];
-      }
-    }).then(result => {
-      console.log(result);
-    });
+        `,
+        variables: {
+          index,
+          data: context.board.serialize(),
+        },
+        refetchQueries: (result: any) => {
+          const variables = {index};
+          return [
+            {
+              query: FetchMapQuery,
+              variables,
+            },
+          ];
+        },
+      })
+      .then(result => {
+        console.log(result);
+      });
   }
   onComputeEdges(state: UIState, context: ToolContext): void {
     context.board.applyEdgeRules();

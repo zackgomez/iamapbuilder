@@ -12,13 +12,12 @@ export function checkBoardTiles(board: Board): Map<string, number> {
   for (let r = 0; r < board.getHeight(); r++) {
     for (let c = 0; c < board.getWidth(); c++) {
       const cell = board.getCell(c, r);
-      const tile = cell.tileNumber
+      const tile = cell.tileNumber;
       if (tile && tile.length > 0) {
         tileToCount.set(tile, (tileToCount.get(tile) || 0) + 1);
       }
     }
   }
-
 
   const tileLists = board.getTileLists();
   _.each(tileLists, ({title, tiles}) => {

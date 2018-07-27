@@ -1,6 +1,6 @@
 /* @flow */
 
-import { gql } from 'apollo-server';
+import {gql} from 'apollo-server';
 
 import fs from 'mz/fs';
 import Board from './board';
@@ -25,13 +25,16 @@ export const typeDefs = gql`
     index: Int
     data: String
   }
+
   type Query {
     map(index: Int!): MapDefinition
   }
+
   type UpdateMapResponse {
     success: Boolean
     map: MapDefinition
   }
+
   type Mutation {
     update_map(index: Int!, data: String!): UpdateMapResponse
   }
@@ -50,10 +53,7 @@ export const resolvers = {
     },
   },
   Mutation: {
-    update_map: async (
-      _: mixed,
-      {index, data}: {index: number, data: string},
-    ) => {
+    update_map: async (_: mixed, {index, data}: {index: number, data: string}) => {
       const filename = await genMapFilenameFromIndex(index);
       const path = 'maps/' + filename;
 
@@ -75,8 +75,8 @@ export const resolvers = {
         map: {
           index,
           data: newData,
-        }
-      }
+        },
+      };
     },
   },
 };

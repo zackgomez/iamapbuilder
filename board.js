@@ -307,7 +307,13 @@ export default class Board {
   }
   static fromSerialized(serialized: string): Board {
     const json = JSON.parse(serialized);
-    const board = new Board(json.cols, json.rows, json.name, json.briefingLocation, json.mapType);
+    const board = new Board(
+      json.cols,
+      json.rows,
+      json.name,
+      json.briefingLocation,
+      json.mapType,
+    );
     board.cellRows = json.cells || {};
     board.verticalEdgeRows = json.vertical_edges || {};
     board.horizontalEdgeRows = json.horizontal_edges || {};

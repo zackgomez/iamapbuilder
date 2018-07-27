@@ -11,14 +11,14 @@ type Color = {
   red?: number,
   blue?: number,
   green?: number,
-}
+};
 
 type BorderStyle = string;
 type Border = {
   style?: BorderStyle,
   width?: number,
   color: Color,
-}
+};
 
 type SheetCell = {
   userEnteredFormat?: {
@@ -36,19 +36,22 @@ type SheetCell = {
   userEnteredValue?: {
     stringValue?: string,
   },
-}
+};
 
 type Row = {
-  values: Array<SheetCell>;
-}
+  values: Array<SheetCell>,
+};
 
-function isMapCell(cell: SheetCell): bool {
+function isMapCell(cell: SheetCell): boolean {
   if (cell.userEnteredFormat && cell.userEnteredFormat.backgroundColor) {
     const {backgroundColor} = cell.userEnteredFormat;
     if (
-      backgroundColor.red && backgroundColor.red !== 1 &&
-      backgroundColor.green && backgroundColor.green !== 1 &&
-      backgroundColor.blue && backgroundColor.blue !== 1
+      backgroundColor.red &&
+      backgroundColor.red !== 1 &&
+      backgroundColor.green &&
+      backgroundColor.green !== 1 &&
+      backgroundColor.blue &&
+      backgroundColor.blue !== 1
     ) {
       return true;
     }
@@ -64,7 +67,7 @@ function convertCell(cell: SheetCell): ?Cell {
   const text = (cell.userEnteredValue && cell.userEnteredValue.stringValue) || null;
 
   const convertedCell: Cell = {};
-  
+
   let matches = text && text.match(/(\d\d[AB])/);
   if (matches && matches.length === 2) {
     convertedCell.tileNumber = matches[1];
@@ -80,7 +83,7 @@ function convertCell(cell: SheetCell): ?Cell {
   if (red !== 1 && green !== 1 && blue !== 1) {
     convertedCell.inBounds = true;
 
-    if (blue > red && blue > green && blue > .9) {
+    if (blue > red && blue > green && blue > 0.9) {
       convertedCell.difficultTerrain = true;
     }
 
@@ -98,7 +101,7 @@ type ExtractedEdge = {|
 |};
 
 function convertBorderToEdge(border: Border): Edge {
-  const color : Color = border.color || {};
+  const color: Color = border.color || {};
   if (border.style === 'SOLID_THICK') {
     return 'Wall';
   } else if (border.style === 'SOLID_MEDIUM') {
@@ -143,7 +146,7 @@ function extractEdges(cell: SheetCell, x: number, y: number): Array<ExtractedEdg
       edge,
       dir: 'Horizontal',
       x,
-      y: y+1,
+      y: y + 1,
     });
   }
   if (borders.left) {
@@ -160,7 +163,7 @@ function extractEdges(cell: SheetCell, x: number, y: number): Array<ExtractedEdg
     edges.push({
       edge,
       dir: 'Vertical',
-      x: x+1,
+      x: x + 1,
       y,
     });
   }
@@ -169,7 +172,11 @@ function extractEdges(cell: SheetCell, x: number, y: number): Array<ExtractedEdg
 }
 
 function parseTileString(s: string): Array<string> {
-  const parts = s.trim().replace(/,/g, '').replace(/ \(/g, '(').split(' ');
+  const parts = s
+    .trim()
+    .replace(/,/g, '')
+    .replace(/ \(/g, '(')
+    .split(' ');
   const explodedParts = [];
   parts.forEach(part => {
     const matches = part.match(/(\d\d[AB])\((\d)\)/);
@@ -198,7 +205,7 @@ function enumerateCells(
       });
     }
   });
-};
+}
 
 export function convertSheet(sheet: any): Board {
   const title = sheet.properties.title;
@@ -209,7 +216,8 @@ export function convertSheet(sheet: any): Board {
   invariant(
     rows.length <= sheetRows,
     'row count mismatch %s vs %s',
-    rows.length, sheetRows,
+    rows.length,
+    sheetRows,
   );
 
   let location = '';
@@ -279,7 +287,7 @@ export function convertSheet(sheet: any): Board {
       if (edge === 'Nothing') {
         return;
       }
-      const existing = board.getEdge(x, y, dir)
+      const existing = board.getEdge(x, y, dir);
       if (edge === existing) {
         return;
       }
@@ -289,7 +297,6 @@ export function convertSheet(sheet: any): Board {
       }
       board.setEdge(x, y, dir, edge);
     });
-
 
     const convertedCell = convertCell(cell);
     if (convertedCell) {

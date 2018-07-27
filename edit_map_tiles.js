@@ -12,8 +12,8 @@ import {TileSets, MissionTypes, BriefingLocations} from './GameData';
 type State = {
   filename: ?string,
   board: ?Board,
-}
-let state : State = {
+};
+let state: State = {
   filename: null,
   board: null,
 };
@@ -29,7 +29,7 @@ async function getFilename(rl: readline.Interface): Promise<string> {
 type CompletionResult = [Array<string>, string];
 type AsyncCompleter = (line: string) => Promise<CompletionResult>;
 
-let completerStack : Array<AsyncCompleter> = [];
+let completerStack: Array<AsyncCompleter> = [];
 
 function pushCompleter(newCompleter: AsyncCompleter): void {
   completerStack.push(newCompleter);
@@ -89,15 +89,17 @@ async function handleLine(rl: readline, line: string): Promise<void> {
   if (line.startsWith('list')) {
     console.log(board.getTileLists());
   } else if (line.startsWith('addtiles')) {
-
     const title = await questionWithCompleter(rl, TileSetCompleter, 'Tile Set: ');
 
     const tilesString = await rl.question('Tiles (space separated): ');
-    const tiles = tilesString.trim().replace(/,/, '').split(' ');
+    const tiles = tilesString
+      .trim()
+      .replace(/,/, '')
+      .split(' ');
     board.addTileList({title, tiles});
     console.log(board.getTileLists());
   } else if (line.startsWith('save')) {
-    let filename : ?string = state.filename;
+    let filename: ?string = state.filename;
     if (!filename || filename.length === 0) {
       filename = await rl.question('Save as? ');
       if (!filename.endsWith('.json')) {
@@ -116,7 +118,11 @@ async function handleLine(rl: readline, line: string): Promise<void> {
     const name = await rl.question('New Mission Name: ');
     board.setName(name);
   } else if (line.startsWith('location')) {
-    const location = await questionWithCompleter(rl, BriefingLocationCompleter, 'Briefing Location: ');
+    const location = await questionWithCompleter(
+      rl,
+      BriefingLocationCompleter,
+      'Briefing Location: ',
+    );
     board.setBriefingLocation(location);
   } else if (line.startsWith('type')) {
     const type = await questionWithCompleter(rl, MissionTypeCompleter, 'Mission Type: ');
@@ -161,7 +167,9 @@ async function handleLine(rl: readline, line: string): Promise<void> {
     const newWidth = lastX + 1;
     const newHeight = lastY + 1;
 
-    const answer = await rl.question(`Go from size ${board.getWidth()} x ${board.getHeight()} to ${newWidth} x ${newHeight}? (y/n)`);
+    const answer = await rl.question(
+      `Go from size ${board.getWidth()} x ${board.getHeight()} to ${newWidth} x ${newHeight}? (y/n)`,
+    );
     if (answer === 'y') {
       board.setWidth(newWidth);
       board.setHeight(newHeight);

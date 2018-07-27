@@ -11,13 +11,10 @@ import {
   makeUpdateDimensionPropertiesRequests,
   makeUpdateSheetPropertiesRequest,
 } from './converter';
-import {
-  genBatchUpdate,
-  genSpreadsheets,
-} from './google-api-wrapper';
+import {genBatchUpdate, genSpreadsheets} from './google-api-wrapper';
 
-import { genEditMode } from './edit_map_tiles';
-import { convertSheet } from './sheet_to_map';
+import {genEditMode} from './edit_map_tiles';
+import {convertSheet} from './sheet_to_map';
 import {filenameFromMapName} from './maps';
 import * as _ from 'lodash';
 
@@ -60,7 +57,6 @@ async function genUploadSpreadsheet(
 
   console.log(`Uploading map ${map.name}`);
 
-
   let sheetId: ?number = null;
   let requests = [];
 
@@ -71,8 +67,7 @@ async function genUploadSpreadsheet(
       requests.push(makeUpdateSheetPropertiesRequest(sheetId, map));
       console.log('Updating existing sheet', sheetId);
     }
-  } catch (e) {
-  }
+  } catch (e) {}
   if (!sheetId) {
     sheetId = Math.floor(Math.random() * 2147483648);
     requests.push(makeCreateSheetRequest(map, sheetId));
@@ -87,10 +82,7 @@ async function genUploadSpreadsheet(
   console.log('Successfully updated sheet');
 }
 
-async function genShrinkSpreadsheet(
-  spreadsheetId: string,
-  cmd: any,
-): Promise<void> {
+async function genShrinkSpreadsheet(spreadsheetId: string, cmd: any): Promise<void> {
   const auth = await genAuth();
 
   const sheetsResponse = await genSpreadsheets(auth, spreadsheetId);
@@ -121,27 +113,19 @@ async function genShrinkSpreadsheet(
   await genBatchUpdate(auth, spreadsheetId, requests);
 }
 
-async function genCreateMap(
-  cmd: any,
-): Promise<void> {
+async function genCreateMap(cmd: any): Promise<void> {
   const board = Board.defaultBoard();
   await genEditMode(null, board);
 }
 
-async function genEditFile(
-  file: string,
-  cmd: any,
-): Promise<any> {
+async function genEditFile(file: string, cmd: any): Promise<any> {
   const serialized = await fs.readFile(file);
   const board = Board.fromSerialized(serialized);
 
   await genEditMode(file, board);
 }
 
-async function genConvertSpreadsheet(
-  sheetId: string,
-  cmd: any,
-): Promise<void> {
+async function genConvertSpreadsheet(sheetId: string, cmd: any): Promise<void> {
   const auth = await genAuth();
   const indexContent = await fs.readFile('./maps/map_index.json');
   const titles = JSON.parse(indexContent);
@@ -156,11 +140,14 @@ async function genConvertSpreadsheet(
     const spreadsheet = await genSpreadsheets(auth, sheetId, title, true);
     const board = convertSheet(spreadsheet.sheets[0]);
 
-    const filename = 'downloads/' + board.getName()
-      .toLowerCase()
-      .replace(/ /g, '_')
-      .replace(/[^a-z_]/g, '')
-      .concat('.json');
+    const filename =
+      'downloads/' +
+      board
+        .getName()
+        .toLowerCase()
+        .replace(/ /g, '_')
+        .replace(/[^a-z_]/g, '')
+        .concat('.json');
 
     console.log(`Writing ${title} to ${filename}`);
     await fs.writeFile(filename, board.serialize());
@@ -219,7 +206,6 @@ async function genValidateMaps(): Promise<void> {
     }
     // TODO more validation
   }
-
 }
 
 function wrapAsyncCommand(asyncCommand) {
@@ -245,17 +231,11 @@ commander
   .command('shrink <spreadsheetId>')
   .action(wrapAsyncCommand(genShrinkSpreadsheet));
 
-commander
-  .command('new')
-  .action(wrapAsyncCommand(genCreateMap));
+commander.command('new').action(wrapAsyncCommand(genCreateMap));
 
-commander
-  .command('edit <file>')
-  .action(wrapAsyncCommand(genEditFile));
+commander.command('edit <file>').action(wrapAsyncCommand(genEditFile));
 
-commander
-  .command('compact <file> [files...]')
-  .action(wrapAsyncCommand(genCompactFile));
+commander.command('compact <file> [files...]').action(wrapAsyncCommand(genCompactFile));
 
 commander
   .command('convertSpreadsheet <spreadsheetId>')
@@ -263,8 +243,6 @@ commander
   .option('-1, --single', 'only convert 1 sheet')
   .action(wrapAsyncCommand(genConvertSpreadsheet));
 
-commander
-  .command('validate')
-  .action(wrapAsyncCommand(genValidateMaps));
+commander.command('validate').action(wrapAsyncCommand(genValidateMaps));
 
 commander.parse(process.argv);

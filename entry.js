@@ -17,7 +17,6 @@ import MapViewerApp from './viewer';
 
 import ApolloClient from 'apollo-boost';
 
-
 const SHOW_EDITOR = true;
 
 if (SHOW_EDITOR) {
@@ -74,13 +73,13 @@ if (SHOW_EDITOR) {
     if (SHOW_MOUSE_INFO) {
       const mousePosition = interactionManager.mouse.global;
       let mouseInfo = new PIXI.Text(
-          'Derp',
-          new PIXI.TextStyle({
-            fontSize: 12,
-            stroke: '#000000',
-            fill: '#000000',
-          }),
-          );
+        'Derp',
+        new PIXI.TextStyle({
+          fontSize: 12,
+          stroke: '#000000',
+          fill: '#000000',
+        }),
+      );
       mouseInfo.text = `Mouse x: ${mousePosition.x} y: ${mousePosition.y}`;
 
       root.addChild(mouseInfo);
@@ -168,10 +167,8 @@ if (SHOW_EDITOR) {
     uiState.needsRender = true;
   }
   function onSetBriefingLocation(): void {
-    const briefingLocation = prompt(
-        'Briefing Location',
-        globalBoard.getBriefingLocation(),
-        ) || '';
+    const briefingLocation =
+      prompt('Briefing Location', globalBoard.getBriefingLocation()) || '';
     globalBoard.setBriefingLocation(briefingLocation);
     uiState.needsRender = true;
   }
@@ -186,9 +183,9 @@ if (SHOW_EDITOR) {
     let x = VIEWPORT_WIDTH - MAP_INFO_TEXT_WIDTH;
     let y = 10;
     const mapNameText = new PIXI.Text(
-        `Map Name: ${board.getName()}`,
-        MAP_INFO_TEXT_STYLE,
-        );
+      `Map Name: ${board.getName()}`,
+      MAP_INFO_TEXT_STYLE,
+    );
     mapNameText.x = x;
     mapNameText.y = y;
     y += 50;
@@ -198,9 +195,9 @@ if (SHOW_EDITOR) {
     layer.addChild(mapNameText);
 
     const mapTypeText = new PIXI.Text(
-        `Map Type: ${board.getMapType()}`,
-        MAP_INFO_TEXT_STYLE,
-        );
+      `Map Type: ${board.getMapType()}`,
+      MAP_INFO_TEXT_STYLE,
+    );
     mapTypeText.x = x;
     mapTypeText.y = y;
     y += 50;
@@ -210,9 +207,9 @@ if (SHOW_EDITOR) {
     layer.addChild(mapTypeText);
 
     const briefingLocationText = new PIXI.Text(
-        `Briefing Location: ${board.getBriefingLocation()}`,
-        MAP_INFO_TEXT_STYLE,
-        );
+      `Briefing Location: ${board.getBriefingLocation()}`,
+      MAP_INFO_TEXT_STYLE,
+    );
     briefingLocationText.x = x;
     briefingLocationText.y = y;
     y += 30;
@@ -247,8 +244,5 @@ if (SHOW_EDITOR) {
     render();
   })();
 } else {
-  ReactDOM.render(
-    <MapViewerApp />,
-    nullthrows(document.getElementById('app-container')),
-  );
+  ReactDOM.render(<MapViewerApp />, nullthrows(document.getElementById('app-container')));
 }

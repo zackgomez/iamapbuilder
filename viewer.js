@@ -4,7 +4,7 @@ import * as React from 'react';
 import ReactDom from 'react-dom';
 import Autosuggest from 'react-autosuggest';
 import Board from './board';
-import { BoardRenderer } from './renderer';
+import {BoardRenderer} from './renderer';
 
 type IndexItem = {
   index: number,
@@ -26,25 +26,20 @@ type State = {
 // Teach Autosuggest how to calculate suggestions for any given input value.
 const getSuggestions = (index: Array<IndexItem>, value: string) => {
   if (!value) {
-	return [];
+    return [];
   }
   const inputValue = value.trim().toLowerCase();
   const inputLength = inputValue.length;
 
-  return inputLength === 0 ? [] : index.filter(item =>
-    item.title.toLowerCase().slice(0, inputLength) === inputValue
-  );
+  return inputLength === 0
+    ? []
+    : index.filter(item => item.title.toLowerCase().slice(0, inputLength) === inputValue);
 };
 
 const getSuggestionValue = item => item.name;
 
 // Use your imagination to render suggestions.
-const renderSuggestion = item => (
-  <div>
-    {item.title}
-  </div>
-);
-
+const renderSuggestion = item => <div>{item.title}</div>;
 
 export default class MapViewerApp extends React.Component<Props, State> {
   static defaultProps = {};
@@ -52,10 +47,10 @@ export default class MapViewerApp extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-	  suggestions: [],
-	  value: '',
+      suggestions: [],
+      value: '',
       board: null,
-	};
+    };
   }
 
   componentDidMount() {
@@ -72,7 +67,7 @@ export default class MapViewerApp extends React.Component<Props, State> {
         this.setState({error});
       });
   }
-  onChange = (event: any, { newValue } : { newValue: string }) => {
+  onChange = (event: any, {newValue}: {newValue: string}) => {
     this.setState({
       value: newValue,
     });
@@ -80,26 +75,24 @@ export default class MapViewerApp extends React.Component<Props, State> {
 
   // Autosuggest will call this function every time you need to update suggestions.
   // You already implemented tthishis logic above, so just use it.
-  onSuggestionsFetchRequested = ({ value }: { value: string }) => {
+  onSuggestionsFetchRequested = ({value}: {value: string}) => {
     this.setState({
-      suggestions: getSuggestions(this.state.index || [], value)
+      suggestions: getSuggestions(this.state.index || [], value),
     });
   };
 
   // Autosuggest will call this function every time you need to clear suggestions.
   onSuggestionsClearRequested = () => {
     this.setState({
-      suggestions: []
+      suggestions: [],
     });
   };
 
-  onSuggestionSelected = (
-	  event : any,
-	  { suggestion }: { suggestion: IndexItem }) => {
+  onSuggestionSelected = (event: any, {suggestion}: {suggestion: IndexItem}) => {
     this.setState({
-	  value: suggestion.title,
-	});
-    const {board} = this.state; 
+      value: suggestion.title,
+    });
+    const {board} = this.state;
     if (board && board.title === suggestion.title) {
       return;
     }
@@ -115,7 +108,7 @@ export default class MapViewerApp extends React.Component<Props, State> {
   };
 
   render() {
-    const { value, suggestions, board } = this.state;
+    const {value, suggestions, board} = this.state;
 
     // Autosuggest will pass through all these props to the input.
     const inputProps = {
@@ -124,9 +117,7 @@ export default class MapViewerApp extends React.Component<Props, State> {
       onChange: this.onChange,
     };
 
-    const map = board
-      ? <BoardRenderer key={board.getName()} board={board} />
-      : null;
+    const map = board ? <BoardRenderer key={board.getName()} board={board} /> : null;
 
     const theme = {
       float: 'left',

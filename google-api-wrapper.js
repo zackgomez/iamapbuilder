@@ -9,17 +9,20 @@ export function genBatchUpdate(
   requests: Array<any>,
 ): Promise<any> {
   return new Promise((resolve, reject) => {
-    sheets.spreadsheets.batchUpdate({
-      auth,
-      spreadsheetId,
-      resource: {requests},
-    }, (err, response) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(response);
-    });
+    sheets.spreadsheets.batchUpdate(
+      {
+        auth,
+        spreadsheetId,
+        resource: {requests},
+      },
+      (err, response) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(response);
+      },
+    );
   });
 }
 
@@ -27,22 +30,25 @@ export function genSpreadsheets(
   auth: any,
   spreadsheetId: string,
   range: ?string,
-  includeGridData: ?bool,
+  includeGridData: ?boolean,
 ): Promise<any> {
   includeGridData = includeGridData || false;
   let rangeParams = range ? {ranges: [range]} : {};
   return new Promise((resolve, reject) => {
-    sheets.spreadsheets.get({
-      auth,
-      spreadsheetId,
-      includeGridData,
-      ...rangeParams,
-    }, (err, response) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(response);
-    });
+    sheets.spreadsheets.get(
+      {
+        auth,
+        spreadsheetId,
+        includeGridData,
+        ...rangeParams,
+      },
+      (err, response) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(response);
+      },
+    );
   });
 }

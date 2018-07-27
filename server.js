@@ -50,11 +50,11 @@ router.get('/map/:index', async (req, res) => {
     dotfiles: 'deny',
     headers: {
       'x-timestamp': Date.now(),
-      'x-sent': true
-    }
+      'x-sent': true,
+    },
   };
   res.sendFile(filename, options);
-})
+});
 
 router.post('/map/:index', async (req, res) => {
   const index = parseInt(req.params.index);
