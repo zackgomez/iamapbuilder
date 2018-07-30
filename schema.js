@@ -20,14 +20,34 @@ async function genMapFilenameFromIndex(index: number): Promise<string> {
   return filenameFromMapName(map);
 }
 
+type MapIndexEntry = {
+  index: number,
+  title: string,
+  type: string,
+  location: string,
+};
+
+async function genMapIndex(): Promise<Array<MapIndexEntry>> {
+  const indexContent = await fs.readFile(MAP_INDEX_PATH);
+  const mapIndex = JSON.parse(indexContent);
+  mapIndex.forEach((item, i) => item.index = i);
+  return mapIndex;
+}
+
 export const typeDefs = gql`
   type MapDefinition {
     index: Int
+    title: String
     data: String
+  }
+
+  type MapSearchResult {
+    results: [MapDefinition]!
   }
 
   type Query {
     map(index: Int!): MapDefinition
+    map_search(title: String): MapSearchResult
   }
 
   type UpdateMapResponse {
@@ -35,8 +55,15 @@ export const typeDefs = gql`
     map: MapDefinition
   }
 
+  type CreateMapReponse {
+    success: Boolean
+    index: Int
+    map: MapDefinition
+  }
+
   type Mutation {
     update_map(index: Int!, data: String!): UpdateMapResponse
+    create_map(data: String!): CreateMapReponse
   }
 `;
 
@@ -49,6 +76,17 @@ export const resolvers = {
       return {
         index,
         data: contents,
+      };
+    },
+    map_search: async (_: mixed, {title}: {title: string}) => {
+      const mapIndex = await genMapIndex();
+      const indexEntryPairs: Array<[number, MapIndexEntry]> = [];
+      const results = mapIndex.filter(entry => {
+        let matches
+        return entry.title.match(title);
+      });
+      return {
+        results,
       };
     },
   },
@@ -77,6 +115,11 @@ export const resolvers = {
           data: newData,
         },
       };
+    },
+    create_map: async (_: mixed, {data}: {data: string}) => {
+      return {
+        success: false,
+      }
     },
   },
 };
