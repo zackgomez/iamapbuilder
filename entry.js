@@ -158,17 +158,26 @@ if (SHOW_EDITOR) {
   });
   function onSetMapName(): void {
     const name = prompt('Map Name', globalBoard.getName()) || '';
+    if (name === '') {
+      return;
+    }
     globalBoard.setName(name);
     uiState.needsRender = true;
   }
   function onSetMapType(): void {
     const type = prompt('Map Type', globalBoard.getMapType()) || '';
+    if (type === '') {
+      return;
+    }
     globalBoard.setMapType(type);
     uiState.needsRender = true;
   }
   function onSetBriefingLocation(): void {
     const briefingLocation =
       prompt('Briefing Location', globalBoard.getBriefingLocation()) || '';
+    if (briefingLocation === '') {
+      return;
+    }
     globalBoard.setBriefingLocation(briefingLocation);
     uiState.needsRender = true;
   }
