@@ -18,6 +18,11 @@ const server = new ApolloServer({
   // These will be defined for both new or existing servers
   typeDefs,
   resolvers,
+  formatError: error => {
+    console.error(error);
+    console.error(error.extensions.exception);
+    return error;
+  },
 });
 
 registerServer({server, app});
