@@ -1,4 +1,6 @@
 /* @flow */
+import type {MapIndexEntry} from './MapIndex';
+
 import commander from 'commander';
 import fs from 'mz/fs';
 import readline from 'mz/readline';
@@ -14,6 +16,7 @@ import {
 import {genBatchUpdate, genSpreadsheets} from './google-api-wrapper';
 
 import {genEditMode} from './edit_map_tiles';
+import {genMapIndex} from './MapIndex';
 import {convertSheet} from './sheet_to_map';
 import {filenameFromMapName} from './maps';
 import * as _ from 'lodash';
@@ -204,8 +207,30 @@ async function genValidateMaps(): Promise<void> {
     if (badTileCheck) {
       console.log(`${filename} fails tile check`);
     }
+
+    if (!board.getBriefingLocation().match(/\(Wave \d+\)|\(Core Game\)/)) {
+      console.log(`${filename} has bad wave in location ${board.getBriefingLocation()}`);
+    }
     // TODO more validation
   }
+}
+
+async function genRefreshIndex(): Promise<void> {
+  const mapIndex = await genMapIndex();
+
+  const updatedMapindex = await Promise.all(mapIndex.map(async (item: MapIndexEntry) => {
+    const filename = filenameFromMapName(item.title);
+    const content = await fs.readFile(`maps/${filename}`);
+    const board = Board.fromSerialized(content);
+
+    return {
+      index: item.index,
+      title: board.getName(),
+      location: board.getBriefingLocation(),
+      type: board.getMapType(),
+    };
+  }));
+  console.log(updatedMapindex);
 }
 
 function wrapAsyncCommand(asyncCommand) {
@@ -244,5 +269,9 @@ commander
   .action(wrapAsyncCommand(genConvertSpreadsheet));
 
 commander.command('validate').action(wrapAsyncCommand(genValidateMaps));
+
+commander
+  .command('refreshIndex')
+  .action(wrapAsyncCommand(genRefreshIndex))
 
 commander.parse(process.argv);

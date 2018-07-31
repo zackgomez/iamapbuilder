@@ -1,38 +1,14 @@
 /* @flow */
 
+import type {MapIndexEntry} from './MapIndex';
+
 import {gql} from 'apollo-server';
+import nullthrows from 'nullthrows';
 
 import fs from 'mz/fs';
 import Board from './board';
+import {genMapIndex, genMapFilenameFromIndex} from './MapIndex';
 import {filenameFromMapName} from './maps';
-
-const MAP_INDEX_PATH = 'map_index.json';
-async function genMapFilenameFromIndex(index: number): Promise<string> {
-  const indexContent = await fs.readFile(MAP_INDEX_PATH);
-  const mapList = JSON.parse(indexContent);
-
-  if (index >= mapList.length) {
-    throw new RangeError('Index out of bounds');
-  }
-
-  const item = mapList[index];
-  const map = item.title;
-  return filenameFromMapName(map);
-}
-
-type MapIndexEntry = {
-  index: number,
-  title: string,
-  type: string,
-  location: string,
-};
-
-async function genMapIndex(): Promise<Array<MapIndexEntry>> {
-  const indexContent = await fs.readFile(MAP_INDEX_PATH);
-  const mapIndex = JSON.parse(indexContent);
-  mapIndex.forEach((item, i) => item.index = i);
-  return mapIndex;
-}
 
 export const typeDefs = gql`
   type MapDefinition {
@@ -116,8 +92,10 @@ export const resolvers = {
   },
   Mutation: {
     update_map: async (_: mixed, {index, data}: {index: number, data: string}) => {
-      console.log('here');
-      const filename = await genMapFilenameFromIndex(index);
+      const mapIndex = await genMapIndex();
+      const indexItem = nullthrows(mapIndex[index]);
+
+      const filename =  filenameFromMapName(indexItem.title);
       const path = 'maps/' + filename;
 
       const existingData = await fs.readFile(path);
