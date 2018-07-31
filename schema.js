@@ -38,6 +38,8 @@ export const typeDefs = gql`
   type MapDefinition {
     index: Int
     title: String
+    type: String
+    location: String
     data: String
   }
 
@@ -47,6 +49,7 @@ export const typeDefs = gql`
 
   type Query {
     map(index: Int!): MapDefinition
+    map_list: [MapDefinition]!
     map_search(title: String): MapSearchResult
   }
 
@@ -70,17 +73,14 @@ export const typeDefs = gql`
 export const resolvers = {
   Query: {
     map: async (_: mixed, {index}: {index: number}) => {
-      const filename = await genMapFilenameFromIndex(index);
-
-      const contents = fs.readFile(__dirname + '/maps/' + filename);
-      return {
-        index,
-        data: contents,
-      };
+      const mapIndex = await genMapIndex();
+      return mapIndex[index];
+    },
+    map_list: async (_: mixed) => {
+      return await genMapIndex();
     },
     map_search: async (_: mixed, {title}: {title: string}) => {
       const mapIndex = await genMapIndex();
-      const indexEntryPairs: Array<[number, MapIndexEntry]> = [];
       const results = mapIndex.filter(entry => {
         let matches
         return entry.title.match(title);
@@ -88,6 +88,12 @@ export const resolvers = {
       return {
         results,
       };
+    },
+  },
+  MapDefinition: {
+    data: async (parent: MapIndexEntry) => {
+      const filename = filenameFromMapName(parent.title);
+      return await fs.readFile(__dirname + '/maps/' + filename);
     },
   },
   Mutation: {

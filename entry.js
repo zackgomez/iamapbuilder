@@ -19,6 +19,10 @@ import ApolloClient from 'apollo-boost';
 
 const SHOW_EDITOR = true;
 
+let apolloClient = new ApolloClient({
+  uri: 'http://localhost:3000/graphql',
+});
+
 if (SHOW_EDITOR) {
   const VIEWPORT_WIDTH = 1440;
   const VIEWPORT_HEIGHT = 800;
@@ -35,10 +39,6 @@ if (SHOW_EDITOR) {
       e.preventDefault();
     });
   }
-
-  let apolloClient = new ApolloClient({
-    uri: 'http://localhost:3000/graphql',
-  });
 
   const interactionManager = renderer.plugins.interaction;
 
@@ -253,5 +253,8 @@ if (SHOW_EDITOR) {
     render();
   })();
 } else {
-  ReactDOM.render(<MapViewerApp />, nullthrows(document.getElementById('app-container')));
+  ReactDOM.render(
+    <MapViewerApp apollo={apolloClient} />,
+    nullthrows(document.getElementById('app-container')),
+  );
 }

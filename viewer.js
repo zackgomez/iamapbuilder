@@ -5,6 +5,8 @@ import ReactDom from 'react-dom';
 import Autosuggest from 'react-autosuggest';
 import Board from './board';
 import {BoardRenderer} from './renderer';
+import ApolloClient from 'apollo-boost';
+import gql from 'graphql-tag';
 
 type IndexItem = {
   index: number,
@@ -13,7 +15,9 @@ type IndexItem = {
   type: string,
 };
 
-type Props = {};
+type Props = {
+  apollo: ApolloClient,
+};
 type State = {
   error?: Error,
   index?: Array<IndexItem>,
@@ -41,6 +45,23 @@ const getSuggestionValue = item => item.name;
 // Use your imagination to render suggestions.
 const renderSuggestion = item => <div>{item.title}</div>;
 
+const FetchMapListQuery = gql`
+  query FetchMapList {
+    map_list {
+      index
+      title
+    }
+  }
+`;
+
+const FetchMapDataQuery = gql`
+  query FetchMap($index: Int!) {
+    map(index: $index) {
+      data
+    }
+  }
+`;
+
 export default class MapViewerApp extends React.Component<Props, State> {
   static defaultProps = {};
 
@@ -54,14 +75,13 @@ export default class MapViewerApp extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    fetch('/map/list')
-      .then(resp => resp.json())
-      .then(index => {
-        index = index.map((item, i) => {
-          item.index = i;
-          return item;
-        });
-        this.setState({index});
+    this.props.apollo
+      .query({
+        query: FetchMapListQuery,
+        variables: {},
+      })
+      .then(result => {
+        this.setState({index: result.data.map_list});
       })
       .catch(error => {
         this.setState({error});
@@ -96,14 +116,14 @@ export default class MapViewerApp extends React.Component<Props, State> {
     if (board && board.title === suggestion.title) {
       return;
     }
-
-    fetch(`/map/${suggestion.index}`)
-      .then(resp => resp.text())
-      .then(text => {
-        const board = Board.fromSerialized(text);
-        this.setState({
-          board,
-        });
+    this.props.apollo
+      .query({
+        query: FetchMapDataQuery,
+        variables: {index: suggestion.index},
+      })
+      .then(response => {
+        const board = Board.fromSerialized(response.data.map.data);
+        this.setState({board});
       });
   };
 
