@@ -1,0 +1,16 @@
+# Viewer
+
+* Kill Autosuggest - use my own
+* refresh map index and finish `mb refreshIndex` command
+* add metadata to map display
+* make sure map display doesn't get funky
+* test on iPad and different sized screens - media query as necessary
+
+# Editor
+
+* Design new map flow
+  * autocomplete as appropriate
+  * Tile entry
+* Design edit screen and flow
+* new URL for editor
+* dry run adding a new map
