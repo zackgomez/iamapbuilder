@@ -218,7 +218,7 @@ async function genValidateMaps(): Promise<void> {
 async function genRefreshIndex(): Promise<void> {
   const mapIndex = await genMapIndex();
 
-  const updatedMapindex = await Promise.all(mapIndex.map(async (item: MapIndexEntry) => {
+  const updatedMapIndex = await Promise.all(mapIndex.map(async (item: MapIndexEntry) => {
     const filename = filenameFromMapName(item.title);
     const content = await fs.readFile(`maps/${filename}`);
     const board = Board.fromSerialized(content);
@@ -230,7 +230,13 @@ async function genRefreshIndex(): Promise<void> {
       type: board.getMapType(),
     };
   }));
-  console.log(updatedMapindex);
+
+  const changedItems = updatedMapIndex.filter((updatedItem, i) => {
+    const oldItem = mapIndex[i];
+    return !_.isEqual(oldItem, updatedItem);
+  });
+
+  console.log(changedItems);
 }
 
 function wrapAsyncCommand(asyncCommand) {
