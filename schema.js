@@ -87,6 +87,19 @@ export const resolvers = {
       return 'rgb(0, 0, 0)';
     },
     index_location: async (parent: MapIndexEntry) => {
+      let m;
+      if (m = parent.location.match(/(.*), page (\d+) \((.*)\)/)) {
+        // Jabba's Realm Rulebook, page 4 (Wave 9)
+        const wave = m[3];
+        const set = m[1].replace(' Rulebook', '');
+        return `${wave} (${set})`;
+      } else if (m = parent.location.match(/.* \((.*)\)/)) {
+        // ISB Infiltrators (Wave 8)
+        return m[1];
+      } else if (parent.location.match(/Campaign Guide.*/)) {
+        return 'Wave 1 (Core Game)';
+      }
+
       return parent.location;
     },
   },

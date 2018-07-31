@@ -14,6 +14,7 @@ type IndexItem = {
   location: string,
   type: string,
   color: string,
+  index_location: string,
 };
 
 type Props = {
@@ -54,6 +55,7 @@ const FetchMapListQuery = gql`
       location
       type
       color
+      index_location
     }
   }
 `;
@@ -89,17 +91,6 @@ export default class MapViewerApp extends React.Component<Props, State> {
       })
       .catch(error => {
         this.setState({error});
-      });
-
-    // @nocommit
-    this.props.apollo
-      .query({
-        query: FetchMapDataQuery,
-        variables: {index: 10},
-      })
-      .then(response => {
-        const board = Board.fromSerialized(response.data.map.data);
-        this.setState({board});
       });
   }
   onChange = (event: any, {newValue}: {newValue: string}) => {
@@ -151,9 +142,9 @@ export default class MapViewerApp extends React.Component<Props, State> {
     }
     const items = this.state.index.map((item) => {
       return (
-        <div key={item.title} style={{display: 'flex', flexFlow: 'column'}}>
-          <div style={{color: item.color}}>{item.title}</div>
-          <div style={{marginLeft: 10}}>{item.location}</div>
+        <div key={item.title} style={{display: 'flex', flexFlow: 'column', paddingTop: 5, paddingBottom: 5}}>
+          <h3 style={{}}>{item.title}</h3>
+          <h4 style={{marginLeft: 16, color: item.color}}>{item.index_location}</h4>
         </div>
       )
     });
