@@ -116,6 +116,7 @@ export function makeEdgeLayer(board: Board, scale: number): any {
 
 type Props = {
   board: Board,
+  theme: ?Object,
 };
 
 export class BoardRenderer extends React.Component<Props> {
@@ -149,8 +150,6 @@ export class BoardRenderer extends React.Component<Props> {
     if (!container) {
       return;
     }
-
-    console.log('create renderer');
 
     const {board} = this.props;
 
@@ -201,14 +200,11 @@ export class BoardRenderer extends React.Component<Props> {
   }
 
   render() {
-    const theme = themeable({
-      width: '100%',
-      height: '100%',
-    });
+    const theme = themeable(this.props.theme);
 
     return (
       <div
-        {...theme('canvas-container')}
+        {...theme(1, 'container')}
         ref={container => this.setContainer(container)}
       />
     );

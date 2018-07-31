@@ -41,6 +41,7 @@ export const typeDefs = gql`
     type: String
     location: String
     data: String
+    color: String
   }
 
   type MapSearchResult {
@@ -95,9 +96,13 @@ export const resolvers = {
       const filename = filenameFromMapName(parent.title);
       return await fs.readFile(__dirname + '/maps/' + filename);
     },
+    color: async (parent: MapIndexEntry) => {
+      const {type} = parent;
+    },
   },
   Mutation: {
     update_map: async (_: mixed, {index, data}: {index: number, data: string}) => {
+      console.log('here');
       const filename = await genMapFilenameFromIndex(index);
       const path = 'maps/' + filename;
 

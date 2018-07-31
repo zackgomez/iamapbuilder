@@ -50,6 +50,8 @@ const FetchMapListQuery = gql`
     map_list {
       index
       title
+      location
+      type
     }
   }
 `;
@@ -85,6 +87,17 @@ export default class MapViewerApp extends React.Component<Props, State> {
       })
       .catch(error => {
         this.setState({error});
+      });
+
+    // @nocommit
+    this.props.apollo
+      .query({
+        query: FetchMapDataQuery,
+        variables: {index: 10},
+      })
+      .then(response => {
+        const board = Board.fromSerialized(response.data.map.data);
+        this.setState({board});
       });
   }
   onChange = (event: any, {newValue}: {newValue: string}) => {
@@ -127,6 +140,29 @@ export default class MapViewerApp extends React.Component<Props, State> {
       });
   };
 
+  renderMapList() {
+    if (this.state.value) {
+      return null;
+    }
+    if (!this.state.index) {
+      return null;
+    }
+    const items = this.state.index.map((item) => {
+      console.log(item);
+      return (
+        <div style={{display: 'flex', flexFlow: 'column'}}>
+          <div>{item.title}</div>
+          <div style={{marginLeft: 10}}>{item.location}</div>
+        </div>
+      )
+    });
+    return (
+      <div style={{padding: 5}}>
+        {items}
+      </div>
+    );
+  }
+
   render() {
     const {value, suggestions, board} = this.state;
 
@@ -137,25 +173,33 @@ export default class MapViewerApp extends React.Component<Props, State> {
       onChange: this.onChange,
     };
 
-    const map = board ? <BoardRenderer key={board.getName()} board={board} /> : null;
+    const map = board ? <BoardRenderer key={board.getName()} board={board} theme={{container: {flex: "1 0 auto"}}}/> : null;
 
     const theme = {
       float: 'left',
     };
 
+    const autosuggest =
+      <Autosuggest
+        theme={theme}
+        suggestions={suggestions}
+        onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
+        onSuggestionsClearRequested={this.onSuggestionsClearRequested}
+        getSuggestionValue={getSuggestionValue}
+        renderSuggestion={renderSuggestion}
+        inputProps={inputProps}
+        onSuggestionSelected={this.onSuggestionSelected}
+      />;
+
     return (
       <React.Fragment>
-        <Autosuggest
-          theme={theme}
-          suggestions={suggestions}
-          onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-          onSuggestionsClearRequested={this.onSuggestionsClearRequested}
-          getSuggestionValue={getSuggestionValue}
-          renderSuggestion={renderSuggestion}
-          inputProps={inputProps}
-          onSuggestionSelected={this.onSuggestionSelected}
-        />
-        {map}
+        <div style={{display: 'flex'}}>
+          <div style={{flex: "0 0 auto", padding: 5}}>
+            {autosuggest}
+            {this.renderMapList()}
+          </div>
+          {map}
+        </div>
       </React.Fragment>
     );
   }
