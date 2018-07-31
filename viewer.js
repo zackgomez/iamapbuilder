@@ -13,6 +13,7 @@ type IndexItem = {
   title: string,
   location: string,
   type: string,
+  color: string,
 };
 
 type Props = {
@@ -52,6 +53,7 @@ const FetchMapListQuery = gql`
       title
       location
       type
+      color
     }
   }
 `;
@@ -148,10 +150,9 @@ export default class MapViewerApp extends React.Component<Props, State> {
       return null;
     }
     const items = this.state.index.map((item) => {
-      console.log(item);
       return (
-        <div style={{display: 'flex', flexFlow: 'column'}}>
-          <div>{item.title}</div>
+        <div key={item.title} style={{display: 'flex', flexFlow: 'column'}}>
+          <div style={{color: item.color}}>{item.title}</div>
           <div style={{marginLeft: 10}}>{item.location}</div>
         </div>
       )

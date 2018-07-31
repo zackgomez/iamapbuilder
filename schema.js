@@ -40,6 +40,7 @@ export const typeDefs = gql`
     title: String
     type: String
     location: String
+    index_location: String
     data: String
     color: String
   }
@@ -96,8 +97,21 @@ export const resolvers = {
       const filename = filenameFromMapName(parent.title);
       return await fs.readFile(__dirname + '/maps/' + filename);
     },
-    color: async (parent: MapIndexEntry) => {
-      const {type} = parent;
+    color: (parent: MapIndexEntry) => {
+      const type = parent.type.toLowerCase();
+      if (type.startsWith('red')) {
+        return 'rgb(255, 0, 0)';
+      } else if (type.startsWith('gray')) {
+        return 'rgb(127, 127, 127)';
+      } else if (type.startsWith('green')) {
+        return 'rgb(0, 176, 80)';
+      } else if (type.startsWith('agenda')) {
+        return 'rgb(31, 73, 126)';
+      }
+      return 'rgb(0, 0, 0)';
+    },
+    index_location: async (parent: MapIndexEntry) => {
+      return parent.location;
     },
   },
   Mutation: {
