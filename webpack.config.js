@@ -1,13 +1,16 @@
 'use strict';
 /* @flow */
 
+const path = require('path');
+
 const config = {
   entry: './entry.js',
   output: {
-    path: __dirname + '/build/',
+    path: path.resolve(__dirname, 'build'),
     filename: 'bundle.js',
   },
-  devtool: 'eval-source-map',
+  devtool: 'cheap-module-source-map',
+  mode: 'development',
   module: {
     rules: [
       {

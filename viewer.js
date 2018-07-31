@@ -2,11 +2,11 @@
 
 import * as React from 'react';
 import ReactDom from 'react-dom';
-import Autosuggest from 'react-autosuggest';
 import Board from './board';
 import {BoardRenderer} from './renderer';
 import ApolloClient from 'apollo-boost';
 import gql from 'graphql-tag';
+import nullthrows from 'nullthrows';
 
 type IndexItem = {
   index: number,
@@ -23,29 +23,10 @@ type Props = {
 type State = {
   error?: Error,
   index?: Array<IndexItem>,
-  suggestions: Array<IndexItem>,
-  value: string,
+  searchText: string,
 
   board: ?Board,
 };
-
-// Teach Autosuggest how to calculate suggestions for any given input value.
-const getSuggestions = (index: Array<IndexItem>, value: string) => {
-  if (!value) {
-    return [];
-  }
-  const inputValue = value.trim().toLowerCase();
-  const inputLength = inputValue.length;
-
-  return inputLength === 0
-    ? []
-    : index.filter(item => item.title.toLowerCase().slice(0, inputLength) === inputValue);
-};
-
-const getSuggestionValue = item => item.name;
-
-// Use your imagination to render suggestions.
-const renderSuggestion = item => <div>{item.title}</div>;
 
 const FetchMapListQuery = gql`
   query FetchMapList {
@@ -74,8 +55,7 @@ export default class MapViewerApp extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      suggestions: [],
-      value: '',
+      searchText: '',
       board: null,
     };
   }
@@ -93,39 +73,22 @@ export default class MapViewerApp extends React.Component<Props, State> {
         this.setState({error});
       });
   }
-  onChange = (event: any, {newValue}: {newValue: string}) => {
+
+  onSearchChange = (event: any) => {
     this.setState({
-      value: newValue,
+      searchText: event.target.value,
     });
   };
 
-  // Autosuggest will call this function every time you need to update suggestions.
-  // You already implemented tthishis logic above, so just use it.
-  onSuggestionsFetchRequested = ({value}: {value: string}) => {
-    this.setState({
-      suggestions: getSuggestions(this.state.index || [], value),
-    });
-  };
-
-  // Autosuggest will call this function every time you need to clear suggestions.
-  onSuggestionsClearRequested = () => {
-    this.setState({
-      suggestions: [],
-    });
-  };
-
-  onSuggestionSelected = (event: any, {suggestion}: {suggestion: IndexItem}) => {
-    this.setState({
-      value: suggestion.title,
-    });
+  onItemPressed = (item: IndexItem) => {
     const {board} = this.state;
-    if (board && board.title === suggestion.title) {
+    if (board && board.getName() === item.title) {
       return;
     }
     this.props.apollo
       .query({
         query: FetchMapDataQuery,
-        variables: {index: suggestion.index},
+        variables: {index: item.index},
       })
       .then(response => {
         const board = Board.fromSerialized(response.data.map.data);
@@ -133,16 +96,31 @@ export default class MapViewerApp extends React.Component<Props, State> {
       });
   };
 
-  renderMapList() {
-    if (this.state.value) {
-      return null;
+  getCandidateItems(items: Array<IndexItem>, filter: ?string): Array<IndexItem> {
+    const index = nullthrows(this.state.index);
+    if (!filter) {
+      return index;
     }
+
+    const finalFilter = filter.toLowerCase();
+
+    return index.filter(item => {
+      return item.title.toLowerCase().match(finalFilter);
+    });
+  }
+
+  renderMapList() {
     if (!this.state.index) {
       return null;
     }
-    const items = this.state.index.map((item) => {
+    const candidateItems = this.getCandidateItems(
+      this.state.index,
+      this.state.searchText,
+    );
+
+    const items = candidateItems.map((item) => {
       return (
-        <div key={item.title} style={{display: 'flex', flexFlow: 'column', paddingTop: 5, paddingBottom: 5}}>
+        <div onClick={() => this.onItemPressed(item)} key={item.title} style={{display: 'flex', flexFlow: 'column', paddingTop: 5, paddingBottom: 5}}>
           <h3 style={{}}>{item.title}</h3>
           <h4 style={{marginLeft: 16, color: item.color}}>{item.index_location}</h4>
         </div>
@@ -156,38 +134,17 @@ export default class MapViewerApp extends React.Component<Props, State> {
   }
 
   render() {
-    const {value, suggestions, board} = this.state;
+    const {searchText, board} = this.state;
 
-    // Autosuggest will pass through all these props to the input.
-    const inputProps = {
-      placeholder: 'Map Name',
-      value,
-      onChange: this.onChange,
-    };
-
-    const map = board ? <BoardRenderer key={board.getName()} board={board} theme={{container: {flex: "1 0 auto"}}}/> : null;
-
-    const theme = {
-      float: 'left',
-    };
-
-    const autosuggest =
-      <Autosuggest
-        theme={theme}
-        suggestions={suggestions}
-        onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-        onSuggestionsClearRequested={this.onSuggestionsClearRequested}
-        getSuggestionValue={getSuggestionValue}
-        renderSuggestion={renderSuggestion}
-        inputProps={inputProps}
-        onSuggestionSelected={this.onSuggestionSelected}
-      />;
+    const map = board
+      ? <BoardRenderer key={board.getName()} board={board} theme={{container: {flex: "1 0 auto"}}} />
+      : null;
 
     return (
       <React.Fragment>
         <div style={{display: 'flex', height: '100%', width: '100%'}}>
           <div style={{flex: "0 0 auto", padding: 5, overflow: 'auto'}}>
-            {autosuggest}
+            <input type="search" value={searchText} onChange={this.onSearchChange} />
             {this.renderMapList()}
           </div>
           {map}
