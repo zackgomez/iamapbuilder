@@ -1,4 +1,16 @@
-## Add/update a map
+## New map
+
+`yarn mb new`
+`node graphql-server.js`
+`open http://localhost:3000`
+navigate to new map via index
+fill it out and put
+
+
+
+
+
+## Add/update a map in the spreadsheet
 
 `yarn mb upload 1Nxbj_z5S5-0W6Rtz8fTcL8q4huaHOkZluT3trkDVsYM maps/xxx`
 
