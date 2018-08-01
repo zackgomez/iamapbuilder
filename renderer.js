@@ -153,11 +153,9 @@ export class BoardRenderer extends React.Component<Props> {
 
     const {board} = this.props;
 
-    const docElement = nullthrows(document.documentElement);
-
     const PADDING = 10;
-    const screenWidth = docElement.clientWidth - 2 * PADDING;
-    const screenHeight = docElement.clientHeight - 2 * PADDING - 50;
+    const screenWidth = container.clientWidth - 2 * PADDING;
+    const screenHeight = container.clientHeight - 2 * PADDING - 50;
 
     const scale = Math.min(
       Math.floor(
@@ -183,7 +181,7 @@ export class BoardRenderer extends React.Component<Props> {
 
     this.renderer = renderer;
 
-    nullthrows(container).appendChild(renderer.view);
+    container.appendChild(renderer.view);
     renderer.view.addEventListener('contextmenu', e => {
       e.preventDefault();
     });

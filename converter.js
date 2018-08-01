@@ -1,6 +1,7 @@
 /* @flow */
 import _ from 'lodash';
 import Board from './board';
+import {renderTileListValue} from './BoardUtils';
 
 const EdgeTypeToBorderStyle = {
   Nothing: null,
@@ -101,35 +102,6 @@ const USER_ENTERED_FORMAT_TEXT_CELL = {
   },
 };
 
-function renderTileListItem(tile: string, count: number) {
-  if (count < 2) {
-    return tile;
-  }
-  return `${tile.trim()}(${count})`;
-}
-
-function renderTileListValue(tileList: any): string {
-  const reduced = [];
-  let lastTile = null;
-  let count = 0;
-  tileList.tiles.forEach(tile => {
-    if (tile !== lastTile) {
-      if (lastTile !== null) {
-        reduced.push(renderTileListItem(lastTile, count));
-      }
-      lastTile = tile;
-      count = 1;
-    } else {
-      count++;
-    }
-  });
-  if (lastTile) {
-    reduced.push(renderTileListItem(lastTile, count));
-  }
-
-  return reduced.join(', ');
-}
-
 function renderLabelCell(title: string, value: string, valueColor: ?any): any {
   const text = `${title}: ${value}`;
   return {
@@ -177,7 +149,7 @@ function renderTextCell(
   ) {
     const tileList = map.tileLists[row - TILE_LIST_START_ROW];
     title = tileList.title;
-    value = renderTileListValue(tileList);
+    value = renderTileListValue(tileList.tiles);
   } else if (row === MISSION_INFO_START_ROW) {
     title = 'Type';
     value = map.mapType;

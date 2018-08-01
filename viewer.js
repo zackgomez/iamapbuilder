@@ -3,6 +3,7 @@
 import * as React from 'react';
 import ReactDom from 'react-dom';
 import Board from './board';
+import {renderTileListValue} from './BoardUtils';
 import {BoardRenderer} from './renderer';
 import ApolloClient from 'apollo-boost';
 import gql from 'graphql-tag';
@@ -48,6 +49,21 @@ const FetchMapDataQuery = gql`
     }
   }
 `;
+
+const InfoPanel = (props: {board: Board}) => {
+  const {board} = props;
+  const tileElements = board.getTileLists().map(({tiles, title}) => {
+    return <h3>{title}: {renderTileListValue(tiles)}</h3>
+  });
+  return (
+    <div>
+      <h1>{board.getName()}</h1>
+      <h2>{board.getMapType()}</h2>
+      <h2>Location: {board.getBriefingLocation()}</h2>
+      {tileElements}
+    </div>
+  );
+}
 
 export default class MapViewerApp extends React.Component<Props, State> {
   static defaultProps = {};
@@ -137,7 +153,10 @@ export default class MapViewerApp extends React.Component<Props, State> {
     const {searchText, board} = this.state;
 
     const map = board
-      ? <BoardRenderer key={board.getName()} board={board} theme={{container: {flex: "1 0 auto"}}} />
+      ? <BoardRenderer key={board.getName()} board={board} theme={{container: {height: '100%', width: '100%'}}} />
+      : null;
+    const panel = board
+      ? <InfoPanel board={board} />
       : null;
 
     return (
@@ -147,7 +166,10 @@ export default class MapViewerApp extends React.Component<Props, State> {
             <input type="search" value={searchText} onChange={this.onSearchChange} />
             {this.renderMapList()}
           </div>
-          {map}
+          <div style={{display: 'flex', paddingLeft: 50, flexFlow: 'column', flex: "1 1 100%"}}>
+            {panel}
+            {map}
+          </div>
         </div>
       </React.Fragment>
     );

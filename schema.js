@@ -7,7 +7,7 @@ import nullthrows from 'nullthrows';
 
 import fs from 'mz/fs';
 import Board from './board';
-import {genMapIndex, genMapFilenameFromIndex} from './MapIndex';
+import {genMapIndex} from './MapIndex';
 import {filenameFromMapName} from './maps';
 
 export const typeDefs = gql`

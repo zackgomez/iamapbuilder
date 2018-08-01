@@ -28,3 +28,32 @@ export function checkBoardTiles(board: Board): Map<string, number> {
 
   return tileToCount;
 }
+
+function renderTileListItem(tile: string, count: number) {
+  if (count < 2) {
+    return tile;
+  }
+  return `${tile.trim()}(${count})`;
+}
+
+export function renderTileListValue(tileList: Array<string>): string {
+  const reduced = [];
+  let lastTile = null;
+  let count = 0;
+  tileList.forEach(tile => {
+    if (tile !== lastTile) {
+      if (lastTile !== null) {
+        reduced.push(renderTileListItem(lastTile, count));
+      }
+      lastTile = tile;
+      count = 1;
+    } else {
+      count++;
+    }
+  });
+  if (lastTile) {
+    reduced.push(renderTileListItem(lastTile, count));
+  }
+
+  return reduced.join(', ');
+}
