@@ -118,7 +118,7 @@ async function genShrinkSpreadsheet(spreadsheetId: string, cmd: any): Promise<vo
 
 async function genCreateMap(cmd: any): Promise<void> {
   const board = Board.defaultBoard();
-  await genEditMode(null, board);
+  await genEditMode(null, board, true);
 }
 
 async function genEditFile(file: string, cmd: any): Promise<any> {

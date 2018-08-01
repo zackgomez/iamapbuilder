@@ -188,7 +188,7 @@ async function handleLine(rl: readline, line: string): Promise<void> {
   }
 }
 
-export async function genEditMode(filename: ?string, board: Board): Promise<void> {
+export async function genEditMode(filename: ?string, board: Board, startMode: boolean = false): Promise<void> {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -197,6 +197,14 @@ export async function genEditMode(filename: ?string, board: Board): Promise<void
 
   state.filename = filename;
   state.board = board;
+
+  if (startMode) {
+    const commands = ['info', 'name', 'location', 'type', 'addtiles', 'info'];
+    for (let i = 0; i < commands.length; i++) {
+      const command = commands[i];
+      await handleLine(rl, command);
+    }
+  }
 
   rl.prompt();
   rl.on('line', async line => {
