@@ -16,7 +16,7 @@ import {
 import {genBatchUpdate, genSpreadsheets} from './google-api-wrapper';
 
 import {genEditMode} from './edit_map_tiles';
-import {genMapIndex} from './MapIndex';
+import {genMapIndex, genWriteMapIndex} from './MapIndex';
 import {convertSheet} from './sheet_to_map';
 import {filenameFromMapName} from './maps';
 import * as _ from 'lodash';
@@ -235,6 +235,8 @@ async function genRefreshIndex(): Promise<void> {
     const oldItem = mapIndex[i];
     return !_.isEqual(oldItem, updatedItem);
   });
+
+  await genWriteMapIndex(updatedMapIndex);
 
   console.log(changedItems);
 }

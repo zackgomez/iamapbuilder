@@ -1,6 +1,7 @@
 /* @flow */
 
 import fs from 'mz/fs';
+import _ from 'lodash';
 
 import {filenameFromMapName} from './maps';
 
@@ -18,4 +19,16 @@ export async function genMapIndex(): Promise<Array<MapIndexEntry>> {
   const mapIndex = JSON.parse(indexContent);
   mapIndex.forEach((item, i) => item.index = i);
   return mapIndex;
+}
+
+
+export async function genWriteMapIndex(newMapIndex: Array<MapIndexEntry>) {
+  const trimmedMapIndex = _.clone(newMapIndex);
+  trimmedMapIndex.forEach(entry => {
+    delete entry.index;
+  })
+  const serializedMapIndex = JSON.stringify(trimmedMapIndex);
+
+  await fs.writeFile(MAP_INDEX_PATH, serializedMapIndex);
+  console.log(`wrote ${MAP_INDEX_PATH}`)
 }
