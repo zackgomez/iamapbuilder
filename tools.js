@@ -21,7 +21,7 @@ export type UIState = {
   currentTool: Tool,
   availableTools: Array<Tool>,
   needsRender: boolean,
-  filename: ?string,
+  index: ?number,
 };
 
 export type Point = {|
@@ -37,7 +37,7 @@ export type ToolContext = {
 
   cellPositionFromEvent: (e: any) => Point,
   setBoard: (board: Board) => void,
-  setFilename: (filename: string) => void,
+  fetchMap: (index: number) => void,
   apollo: ApolloClient,
 };
 
@@ -71,14 +71,6 @@ export class Tool {
 
 type TerrainSubtool = 'Cell' | 'Edge' | 'TileNumber';
 type CellType = 'OutOfBounds' | 'InBounds' | 'Difficult';
-
-const FetchMapQuery = gql`
-  query FetchMap($index: Int!) {
-    map(index: $index) {
-      data
-    }
-  }
-`;
 
 export class TerrainTool extends Tool {
   selectedSubtool_: TerrainSubtool = 'Cell';
@@ -167,7 +159,6 @@ export class TerrainTool extends Tool {
         if (!this.candidateCell_) {
           return state;
         }
-        console.log(event.data.originalEvent);
         if (event.data.originalEvent.button === 1) {
           this.dragCellType_ = 'Difficult';
         } else {
@@ -274,112 +265,35 @@ export class TerrainTool extends Tool {
   showFigureLayer(state: UIState, context: ToolContext): boolean {
     return false;
   }
-  onSave(state: UIState, context: ToolContext): void {
-    window.localStorage.setItem('mapbuilder.save', context.board.serialize());
-    window.localStorage.setItem('mapbuilder.filename', state.filename);
-  }
-  onLoad(state: UIState, context: ToolContext): void {
-    const serialized = window.localStorage.getItem('mapbuilder.save');
-    if (serialized && confirm('Load board?')) {
-      context.setBoard(Board.fromSerialized(serialized));
-      context.setFilename(window.localStorage.getItem('mapbuilder.filename') || '');
-    }
-  }
   onNew(state: UIState, context: ToolContext): void {
     if (confirm('Create a new Board?')) {
       context.setBoard(new Board(26, 50));
-      context.setFilename('');
     }
-  }
-  onDownload(state: UIState, context: ToolContext): void {
-    context.board.compact();
-    const serialized = context.board.serialize();
-    const blob = new Blob([serialized], {type: 'application/json;charset=utf-8'});
-    let filename = prompt('Filename?', state.filename || '');
-    const FILE_SUFFIX = '.json';
-    if (!filename.endsWith(FILE_SUFFIX)) {
-      filename = filename + FILE_SUFFIX;
-    }
-    FileSaver.saveAs(blob, filename);
-  }
-  onUpload(state: UIState, context: ToolContext): void {
-    const fileInput: HTMLInputElement = (document.getElementById('fileInput'): any);
-    if (fileInput) {
-      fileInput.value = '';
-      let count = 0;
-      const cb = () => {
-        if (count++ !== 0) {
-          console.error('CB CALLED MULTIPLE TIMES');
-          return;
-        }
-        this.onFileSelect(fileInput.files, context);
-        fileInput.removeEventListener('change', cb);
-      };
-      fileInput.addEventListener('change', cb);
-      fileInput.click();
-    }
-  }
-  onFileSelect(files: FileList, context: ToolContext): void {
-    if (files.length === 0) {
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = e => {
-      const serialized = e.target.result;
-      const board = Board.fromSerialized(serialized);
-      //context.board.setMapType(board.getMapType());
-      //context.board.setName(board.getName());
-      //context.board.setBriefingLocation(board.getBriefingLocation());
-      //context.board.tileLists = board.tileLists;
-      context.setBoard(board);
-    };
-    reader.readAsText(files.item(0));
-    context.setFilename(files.item(0).name);
   }
   onFetch(state: UIState, context: ToolContext): void {
     const index = parseInt(prompt('Index?'));
     if (index === NaN) {
       return;
     }
-    this.fetchIndex(index, context);
+    context.fetchMap(index);
   }
   onNext(state: UIState, context: ToolContext): void {
     let index = this.getCurrentIndex(state);
     if (index === null) {
       index = -1;
     }
-    this.fetchIndex(index + 1, context);
+    context.fetchMap(index + 1);
   }
   onPrev(state: UIState, context: ToolContext): void {
     const index = this.getCurrentIndex(state) || 1;
-    this.fetchIndex(index - 1, context);
+    context.fetchMap(index - 1);
   }
   getCurrentIndex(state: UIState): ?number {
-    const matches = state.filename && state.filename.match(/index\.(\d+)/);
-    if (matches && matches.length === 2) {
-      return parseInt(matches[1]);
-    }
-    return null;
-  }
-  fetchIndex(index: number, context: ToolContext): void {
-    context.apollo
-      .query({
-        query: FetchMapQuery,
-        variables: {index},
-      })
-      .then(result => {
-        return result.data.map.data;
-      })
-      .then(data => {
-        const board = Board.fromSerialized(data);
-        context.setBoard(board);
-        context.setFilename('index.' + index);
-      })
-      .catch(e => console.error(e));
+    return state.index;
   }
   onPut(state: UIState, context: ToolContext): void {
     const index = this.getCurrentIndex(state);
-    if (!index) {
+    if (index === null) {
       return;
     }
 
@@ -399,6 +313,7 @@ export class TerrainTool extends Tool {
           index,
           data: context.board.serialize(),
         },
+        /* TODO reenable this
         refetchQueries: (result: any) => {
           const variables = {index};
           return [
@@ -408,6 +323,7 @@ export class TerrainTool extends Tool {
             },
           ];
         },
+        */
       })
       .then(result => {
         console.log(result);
@@ -491,14 +407,10 @@ export class TerrainTool extends Tool {
 
     const FILE_BUTTONS = [
       ['New', () => this.onNew(state, context)],
-      //['Save', () => this.onSave(state, context)],
-      //['Load', () => this.onLoad(state, context)],
       ['Fetch', () => this.onFetch(state, context)],
       ['Put', () => this.onPut(state, context)],
       ['Prev', () => this.onPrev(state, context)],
       ['Next', () => this.onNext(state, context)],
-      //['Download', () => this.onDownload(state, context)],
-      //['Upload', () => this.onUpload(state, context)],
     ];
     const MAP_BUTTONS = [
       ['Compute Edges', () => this.onComputeEdges(state, context)],

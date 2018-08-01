@@ -16,8 +16,9 @@ import {makeGridLayer, makeEdgeLayer} from './renderer.js';
 import MapViewerApp from './viewer';
 
 import ApolloClient from 'apollo-boost';
+import gql from 'graphql-tag';
 
-const SHOW_EDITOR = false;
+const SHOW_EDITOR = true;
 
 let apolloClient = new ApolloClient({
   uri: 'http://localhost:3000/graphql',
@@ -89,6 +90,32 @@ if (SHOW_EDITOR) {
     renderer.render(root);
   }
 
+
+  const FetchMapQuery = gql`
+    query FetchMap($index: Int!) {
+      map(index: $index) {
+        data
+      }
+    }
+  `;
+
+  function fetchMap(index: number): void {
+    apolloClient
+      .query({
+        query: FetchMapQuery,
+        variables: {index},
+      })
+      .then(result => {
+        return result.data.map.data;
+      })
+      .then(data => {
+        const board = Board.fromSerialized(data);
+        setBoard(board);
+        setIndex(index);
+      })
+      .catch(e => console.error(e));
+  }
+
   function getToolContext(): ToolContext {
     const cellPositionFromEvent = e => {
       return {
@@ -103,7 +130,7 @@ if (SHOW_EDITOR) {
       viewHeight: VIEWPORT_HEIGHT,
       cellPositionFromEvent,
       setBoard,
-      setFilename,
+      fetchMap,
       apollo: apolloClient,
     };
   }
@@ -141,7 +168,7 @@ if (SHOW_EDITOR) {
     currentTool: allTools[0],
     availableTools: allTools,
     needsRender: true,
-    filename: null,
+    index: null,
   };
 
   function setCurrentTool(newTool: Tool): void {
@@ -236,20 +263,28 @@ if (SHOW_EDITOR) {
     uiState.needsRender = true;
     setTimeout(renderIfNecessary);
   }
-  function setFilename(filename: string): void {
-    uiState.filename = filename;
+  function setIndex(index: ?number): void {
+    uiState.index = index;
+    if (typeof index === 'number') {
+      window.localStorage.setItem('mapbuilder.index', `${index}`);
+    } else {
+      window.localStorage.removeItem('mapbuilder.index');
+    }
   }
 
   (() => {
-    let board = Board.emptyBoard(26, 50);
-
-    const serialized = window.localStorage.getItem('mapbuilder.save');
-    if (serialized) {
-      board = Board.fromSerialized(serialized);
-      uiState.filename = window.localStorage.getItem('mapbuilder.filename');
+    const savedIndex = window.localStorage.getItem('mapbuilder.index');
+    if (savedIndex !== null) {
+      const parsedIndex = parseInt(savedIndex);
+      if (!isNaN(parsedIndex)) {
+        uiState.index = parsedIndex;
+        fetchMap(parsedIndex);
+      }
     }
 
+    let board = Board.emptyBoard(26, 50);
     setBoard(board);
+
     render();
   })();
 } else {
