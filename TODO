@@ -2,6 +2,7 @@
 
 * test on iPad and different sized screens - media query as necessary
 * make sure map display doesn't get funky
+* map needs to resize on window size changes and have a minimum scale so it doesn't get too tiny
 
 
 # Editor
