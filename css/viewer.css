@@ -35,8 +35,9 @@
 }
 
 .searchBar {
-  flex: 1 1;
+  flex: 1 0;
   margin-left: 8;
+  width: 80%;
 }
 
 .indexItemsContainer {

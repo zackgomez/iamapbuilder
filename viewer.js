@@ -90,7 +90,11 @@ export default class MapViewerApp extends React.Component<Props, State> {
         variables: {},
       })
       .then(result => {
-        this.setState({index: result.data.map_list});
+        const mapIndex = result.data.map_list;
+        this.setState({index: mapIndex});
+        if (mapIndex.length > 0) {
+          this.onItemPressed(mapIndex[0]);
+        }
       })
       .catch(error => {
         this.setState({error});
