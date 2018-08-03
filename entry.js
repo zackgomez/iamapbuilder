@@ -18,7 +18,7 @@ import MapViewerApp from './viewer';
 import ApolloClient from 'apollo-boost';
 import gql from 'graphql-tag';
 
-const SHOW_EDITOR = true;
+const SHOW_EDITOR = false;
 
 let apolloClient = new ApolloClient({
   uri: 'http://localhost:3000/graphql',

@@ -1,0 +1,79 @@
+.root {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+.leftPane {
+  flex: 0 0 auto;
+  overflow-y: scroll;
+}
+
+.rightPane {
+  flex: 1 1 100%;
+  flex-flow: column;
+  display: flex;
+  padding-left: 50;
+}
+
+.canvasContainer {
+  flex: 1 1 100%;
+}
+
+.leftPaneTitle {
+  margin: 0;
+  padding: 0;
+
+  padding-left: 5;
+  padding-right: 5;
+  padding-top: 5;
+  padding-bottom: 5;
+
+  margin-bottom: 5;
+
+  font-size: 1.5em;
+}
+
+.searchBar {
+  flex: 1 1;
+  margin-left: 8;
+}
+
+.indexItemsContainer {
+  display: flex;
+  flex-flow: column;
+  padding-top: 5;
+  padding-bottom: 5;
+}
+
+.indexItem {
+  display: flex;
+  flex-flow: column;
+  padding-top: 5;
+  padding-bottom: 5;
+  margin-right: 5;
+}
+.indexItem:hover {
+  background-color: #f1f1f1;
+}
+.indexItemActive {
+  background-color: #0066ff;
+  color: white;
+}
+.indexItemActive:hover {
+  background-color: #0066ff;
+}
+
+.indexItemTitle {
+  padding: 0;
+  margin: 0;
+  margin-left: 8;
+  margin-right: 8;
+}
+
+.indexItemLocation {
+  padding: 0;
+  margin: 0;
+  margin-left: 24;
+  font-weight: normal;
+}

@@ -202,7 +202,7 @@ export class BoardRenderer extends React.Component<Props> {
 
     return (
       <div
-        {...theme(1, 'container')}
+        {...theme(1, 'canvasContainer')}
         ref={container => this.setContainer(container)}
       />
     );

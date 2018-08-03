@@ -1,8 +1,8 @@
 # Viewer
 
-* add metadata to map display
-* make sure map display doesn't get funky
 * test on iPad and different sized screens - media query as necessary
+* make sure map display doesn't get funky
+
 
 # Editor
 
@@ -12,3 +12,10 @@
 * Design edit screen and flow
 * new URL for editor
 * dry run adding a new map
+
+# PDF
+
+* Alternative PDF creation 
+ * maybe https://www.npmjs.com/package/canvas to generate a pdf of the maps
+ * pdfjs to create full blown pdf?
+  

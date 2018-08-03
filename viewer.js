@@ -1,13 +1,18 @@
 /* @flow */
 
-import * as React from 'react';
+import React from 'react';
+import {Fragment} from 'react';
 import ReactDom from 'react-dom';
-import Board from './board';
-import {renderTileListValue} from './BoardUtils';
-import {BoardRenderer} from './renderer';
 import ApolloClient from 'apollo-boost';
 import gql from 'graphql-tag';
 import nullthrows from 'nullthrows';
+import classNames from 'classnames';
+
+import Board from './board';
+import {renderTileListValue} from './BoardUtils';
+import {BoardRenderer} from './renderer';
+
+import styles from './css/viewer.css';
 
 type IndexItem = {
   index: number,
@@ -26,6 +31,7 @@ type State = {
   index?: Array<IndexItem>,
   searchText: string,
 
+  selectedBoardIndex: ?number,
   board: ?Board,
 };
 
@@ -52,8 +58,8 @@ const FetchMapDataQuery = gql`
 
 const InfoPanel = (props: {board: Board}) => {
   const {board} = props;
-  const tileElements = board.getTileLists().map(({tiles, title}) => {
-    return <h3>{title}: {renderTileListValue(tiles)}</h3>
+  const tileElements = board.getTileLists().map(({tiles, title}, i) => {
+    return <h3 key={i}>{title}: {renderTileListValue(tiles)}</h3>
   });
   return (
     <div>
@@ -73,6 +79,7 @@ export default class MapViewerApp extends React.Component<Props, State> {
     this.state = {
       searchText: '',
       board: null,
+      selectedBoardIndex: null,
     };
   }
 
@@ -108,7 +115,7 @@ export default class MapViewerApp extends React.Component<Props, State> {
       })
       .then(response => {
         const board = Board.fromSerialized(response.data.map.data);
-        this.setState({board});
+        this.setState({board, selectedBoardIndex: item.index});
       });
   };
 
@@ -135,15 +142,18 @@ export default class MapViewerApp extends React.Component<Props, State> {
     );
 
     const items = candidateItems.map((item) => {
+      const selected = this.state.selectedBoardIndex === item.index;
       return (
-        <div onClick={() => this.onItemPressed(item)} key={item.title} style={{display: 'flex', flexFlow: 'column', paddingTop: 5, paddingBottom: 5}}>
-          <h3 style={{}}>{item.title}</h3>
-          <h4 style={{marginLeft: 16, color: item.color}}>{item.index_location}</h4>
+        <div onClick={() => this.onItemPressed(item)}
+          key={item.title}
+          className={classNames(styles.indexItem, {[styles.indexItemActive]: selected})}>
+          <h3 className={styles.indexItemTitle}>{item.title}</h3>
+          <h4 className={styles.indexItemLocation}>{item.index_location}</h4>
         </div>
       )
     });
     return (
-      <div style={{padding: 5}}>
+      <div className={styles.indexItemsContainer}>
         {items}
       </div>
     );
@@ -153,25 +163,33 @@ export default class MapViewerApp extends React.Component<Props, State> {
     const {searchText, board} = this.state;
 
     const map = board
-      ? <BoardRenderer key={board.getName()} board={board} theme={{container: {height: '100%', width: '100%'}}} />
+      ? <BoardRenderer key={board.getName()} board={board} theme={styles} />
       : null;
     const panel = board
       ? <InfoPanel board={board} />
       : null;
 
     return (
-      <React.Fragment>
-        <div style={{display: 'flex', height: '100%', width: '100%'}}>
-          <div style={{flex: "0 0 auto", padding: 5, overflow: 'auto'}}>
-            <input type="search" value={searchText} onChange={this.onSearchChange} />
+      <Fragment>
+        <div className={styles.root}>
+          <div className={styles.leftPane}>
+            <h1 className={styles.leftPaneTitle}>
+              Imperial Assault Tile Guide
+            </h1>
+            <input className={styles.searchBar}
+              placeholder="Search..."
+              type="search"
+              value={searchText}
+              onChange={this.onSearchChange}
+            />
             {this.renderMapList()}
           </div>
-          <div style={{display: 'flex', paddingLeft: 50, flexFlow: 'column', flex: "1 1 100%"}}>
+          <div className={styles.rightPane}>
             {panel}
             {map}
           </div>
         </div>
-      </React.Fragment>
+      </Fragment>
     );
   }
 }

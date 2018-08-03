@@ -97,10 +97,10 @@ export const resolvers = {
         // ISB Infiltrators (Wave 8)
         return m[1];
       } else if (parent.location.match(/Campaign Guide.*/)) {
-        return 'Wave 1 (Core Game)';
+        return 'Core Game';
       }
 
-      return parent.location;
+      return 'UNKNOWN';//parent.location;
     },
   },
   Mutation: {
