@@ -5,6 +5,7 @@ import commander from 'commander';
 import fs from 'mz/fs';
 import readline from 'mz/readline';
 
+import {drawGridLayer, drawEdgeLayer} from '../lib/CanvasRenderer';
 import {genAuth} from './auth';
 import {checkBoardTiles} from '../lib/BoardUtils';
 import {
@@ -14,6 +15,8 @@ import {
   makeUpdateSheetPropertiesRequest,
 } from './converter';
 import {genBatchUpdate, genSpreadsheets} from './google-api-wrapper';
+
+import Canvas from 'canvas';
 
 import {genEditMode} from './edit_map_tiles';
 import {genMapIndex, genWriteMapIndex} from '../lib/MapIndex';
@@ -241,6 +244,34 @@ async function genRefreshIndex(): Promise<void> {
   console.log(changedItems);
 }
 
+async function genRenderMap(file: string, cmd: any): Promise<void> {
+  const content = await fs.readFile(file);
+  const board = Board.fromSerialized(content);
+
+  const PADDING = 5;
+  const SCALE = 50;
+  const width = board.getWidth() * SCALE + 2 * PADDING;
+  const height = board.getHeight() * SCALE + 2 * PADDING;
+
+  const canvas = new Canvas(width, height);
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.translate(PADDING, PADDING);
+
+  drawGridLayer(ctx, board, SCALE);
+  drawEdgeLayer(ctx, board, SCALE);
+
+  const outStream = fs.createWriteStream('out.png');
+  const pngStream = canvas.pngStream();
+  pngStream.on('data', chunk => {
+    outStream.write(chunk);
+  });
+  pngStream.on('end', () => console.log('end'));
+}
+
 function wrapAsyncCommand(asyncCommand) {
   return function(a, b, c, d, e) {
     asyncCommand.apply(null, arguments).catch(e => {
@@ -281,5 +312,9 @@ commander.command('validate').action(wrapAsyncCommand(genValidateMaps));
 commander
   .command('refreshIndex')
   .action(wrapAsyncCommand(genRefreshIndex))
+
+commander
+  .command('render <file>')
+  .action(wrapAsyncCommand(genRenderMap))
 
 commander.parse(process.argv);
