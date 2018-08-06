@@ -71,7 +71,7 @@ export const resolvers = {
   MapDefinition: {
     data: async (parent: MapIndexEntry) => {
       const filename = filenameFromMapName(parent.title);
-      return await fs.readFile(__dirname + '/maps/' + filename);
+      return await fs.readFile('maps/' + filename);
     },
     color: (parent: MapIndexEntry) => {
       const type = parent.type.toLowerCase();
