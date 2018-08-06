@@ -1,61 +1,53 @@
 /* @flow */
-import 'pixi.js';
-import * as React from 'react';
-import ReactDom from 'react-dom';
+import invariant from 'invariant';
 import nullthrows from 'nullthrows';
+import React from 'react';
+import ReactDom from 'react-dom';
 import themeable from 'react-themeable';
 
 import Board from './board';
 
-declare var PIXI: any;
-
-const TILE_NUMBER_TEXT_STYLE = new PIXI.TextStyle({
-  fontSize: 15,
-});
-
-export function makeGridLayer(board: Board, scale: number): any {
+function drawGridLayer(ctx: CanvasRenderingContext2D, board: Board, scale: number): void {
   const width = board.getWidth();
   const height = board.getHeight();
-  const grid = new PIXI.Graphics();
-  grid.lineStyle(1, '0x999999', 1);
+
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#999999';
+  ctx.beginPath();
   for (let x = 0; x <= width; x++) {
-    grid.moveTo(x * scale, 0);
-    grid.lineTo(x * scale, height * scale);
+    ctx.moveTo(x * scale, 0);
+    ctx.lineTo(x * scale, height * scale);
   }
   for (let y = 0; y <= height; y++) {
-    grid.moveTo(0, y * scale);
-    grid.lineTo(width * scale, y * scale);
+    ctx.moveTo(0, y * scale);
+    ctx.lineTo(width * scale, y * scale);
   }
+  ctx.stroke();
 
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
       const cell = board.getCell(x, y);
       if (cell.difficultTerrain) {
-        grid.beginFill(0xdbe5f1, 1);
+        ctx.fillStyle = '#dbe5f1';
       } else {
-        grid.beginFill(0xeaf1dd, 1);
+        ctx.fillStyle = '#eaf1dd';
       }
       if (cell.inBounds) {
-        grid.drawRect(x * scale, y * scale, scale, scale);
+        ctx.fillRect(x * scale, y * scale, scale, scale);
       }
-      if (cell.tileNumber && cell.tileNumber.length > 0) {
-        const text = new PIXI.Text(cell.tileNumber, TILE_NUMBER_TEXT_STYLE);
-        text.anchor.x = 0.5;
-        text.anchor.y = 0.5;
-        text.x = x * scale + scale / 2;
-        text.y = y * scale + scale / 2;
-        grid.addChild(text);
+      const tileNumber = cell.tileNumber;
+      if (tileNumber && tileNumber.length > 0) {
+        ctx.font = '15px sans-serif'
+        ctx.fillStyle = 'rgb(0, 0, 0)';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'center';
+        ctx.fillText(tileNumber, x * scale + scale / 2, y * scale + scale / 2, scale);
       }
     }
   }
-  grid.endFill();
-
-  return grid;
 }
 
-export function makeEdgeLayer(board: Board, scale: number): any {
-  let edgeGraphics = new PIXI.Graphics();
-
+function drawEdgeLayer(ctx: CanvasRenderingContext2D, board: Board, scale: number): void {
   for (let x = 0; x <= board.getWidth(); x++) {
     for (let y = 0; y <= board.getHeight(); y++) {
       ['Vertical', 'Horizontal'].forEach(dir => {
@@ -66,52 +58,54 @@ export function makeEdgeLayer(board: Board, scale: number): any {
         if (edge === 'Nothing') {
           return;
         } else if (edge === 'Blocking' || edge === 'Impassible') {
-          edgeGraphics.lineStyle(4, 0xff0000, 1);
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = '#ff0000';
         } else if (edge === 'Wall') {
-          edgeGraphics.lineStyle(6, 0x000000, 1);
+          ctx.lineWidth = 5;
+          ctx.strokeStyle = '#000000';
         } else if (edge === 'TileBoundary') {
-          edgeGraphics.lineStyle(2, 0x000000, 1);
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = '#000000';
         } else if (edge === 'CellBoundary') {
-          edgeGraphics.lineStyle(2, 0x7f7f7f, 1);
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = '#7f7f7f';
         } else if (edge === 'Difficult') {
-          edgeGraphics.lineStyle(4, 0x4f81bd, 1);
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = '#4f81bd';
         }
 
         const xdir = dir === 'Horizontal' ? 1 : 0;
         const ydir = dir === 'Vertical' ? 1 : 0;
 
+        ctx.beginPath();
         if (edge === 'Impassible') {
-          edgeGraphics.moveTo(scale * x, scale * y);
-          edgeGraphics.lineTo(scale * (x + xdir * 1 / 6), scale * (y + ydir * 1 / 6));
+          ctx.moveTo(scale * x, scale * y);
+          ctx.lineTo(scale * (x + xdir * 1 / 6), scale * (y + ydir * 1 / 6));
 
-          edgeGraphics.moveTo(scale * (x + xdir * 2 / 6), scale * (y + ydir * 2 / 6));
-          edgeGraphics.lineTo(scale * (x + xdir * 4 / 6), scale * (y + ydir * 4 / 6));
-          edgeGraphics.moveTo(scale * (x + xdir * 5 / 6), scale * (y + ydir * 5 / 6));
-          edgeGraphics.lineTo(scale * (x + xdir * 6 / 6), scale * (y + ydir * 6 / 6));
-          return;
-        }
-        if (edge === 'CellBoundary') {
+          ctx.moveTo(scale * (x + xdir * 2 / 6), scale * (y + ydir * 2 / 6));
+          ctx.lineTo(scale * (x + xdir * 4 / 6), scale * (y + ydir * 4 / 6));
+          ctx.moveTo(scale * (x + xdir * 5 / 6), scale * (y + ydir * 5 / 6));
+          ctx.lineTo(scale * (x + xdir * 6 / 6), scale * (y + ydir * 6 / 6));
+        } else if (edge === 'CellBoundary') {
           const N_DOTS = 5;
           for (let i = 0; i < N_DOTS; i++) {
-            edgeGraphics.moveTo(
+            ctx.moveTo(
               scale * (x + xdir * i / N_DOTS),
               scale * (y + ydir * i / N_DOTS),
             );
-            edgeGraphics.lineTo(
+            ctx.lineTo(
               scale * (x + xdir * (i + 0.5) / N_DOTS),
               scale * (y + ydir * (i + 0.5) / N_DOTS),
             );
           }
-          return;
+        } else {
+          ctx.moveTo(scale * x, scale * y);
+          ctx.lineTo(scale * (x + xdir), scale * (y + ydir));
         }
-
-        edgeGraphics.moveTo(scale * x, scale * y);
-        edgeGraphics.lineTo(scale * (x + xdir), scale * (y + ydir));
+        ctx.stroke();
       });
     }
   }
-
-  return edgeGraphics;
 }
 
 type Props = {
@@ -120,91 +114,76 @@ type Props = {
 };
 
 export class BoardRenderer extends React.Component<Props> {
-  renderer: any;
-  container: ?HTMLDivElement;
-  root: ?any;
+  canvas: ?HTMLCanvasElement;
 
-  componentDidMount() {}
-
-  componentWillUnmount() {
-    this.cleanup();
-  }
-
-  cleanup() {
-    if (this.root) {
-      this.root.destroy({children: true});
-      this.root = null;
-    }
-    if (this.renderer) {
-      this.renderer.destroy();
-      this.renderer = null;
-    }
-  }
-
-  setContainer(container: ?HTMLDivElement): void {
-    if (this.renderer) {
+  setCanvas(canvas: ?HTMLCanvasElement): void {
+    if (!canvas) {
       return;
     }
-    this.container = container;
-
-    if (!container) {
-      return;
-    }
+    this.canvas = canvas;
+    const parent = nullthrows(canvas.parentElement);
 
     const {board} = this.props;
+    const ctx = canvas.getContext('2d');
+    const screenWidth = parent.clientWidth;
+    const screenHeight = parent.clientHeight;
+    const PADDING = 5;
 
-    const PADDING = 10;
-    const screenWidth = container.clientWidth - 2 * PADDING;
-    const screenHeight = container.clientHeight - 2 * PADDING - 50;
-
-    const scale = Math.min(
+    const scale = Math.max(Math.min(
       Math.floor(
         Math.min(screenWidth / board.getWidth(), screenHeight / board.getHeight()),
       ),
       50,
-    );
+    ), 30);
 
-    const renderer = new PIXI.autoDetectRenderer(
-      board.getWidth() * scale + 2 * PADDING,
-      board.getHeight() * scale + 2 * PADDING,
-    );
-    renderer.backgroundColor = 0xffffff;
-    renderer.autoResize = true;
+    canvas.width = 2 * PADDING + board.getWidth() * scale;
+    canvas.height = 2 * PADDING + board.getHeight() * scale;
 
-    console.log(
-      scale,
-      board.getWidth(),
-      board.getHeight(),
-      renderer.width,
-      renderer.height,
-    );
+    console.log(screenHeight, board.getHeight(), canvas.height, scale);
 
-    this.renderer = renderer;
+    // background
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, screenWidth, screenHeight);
 
-    container.appendChild(renderer.view);
-    renderer.view.addEventListener('contextmenu', e => {
-      e.preventDefault();
-    });
+    // padding
+    ctx.translate(PADDING, PADDING);
 
-    const root = new PIXI.Container();
-    const layers = [makeGridLayer(board, scale), makeEdgeLayer(board, scale)];
-    layers.forEach(layer => {
-      layer.x = PADDING;
-      layer.y = PADDING;
-      root.addChild(layer);
-    });
+    drawGridLayer(ctx, board, scale);
+    drawEdgeLayer(ctx, board, scale);
+  }
 
-    renderer.render(root);
+  componentDidMount() {
+    window.addEventListener('resize', this.onWindowResize);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onWindowResize)
+  }
+
+  onWindowResize = (e: Event) => {
+    const canvas = this.canvas;
+    if (!canvas) {
+      return;
+    }
+
+    if (canvas.width !== canvas.clientWidth ||
+      canvas.height !== canvas.clientHeight) {
+        console.log('size mismatch', canvas.width, canvas.height, canvas.clientWidth, canvas.clientHeight);
+      }
+
+    console.log(canvas.clientWidth, canvas.clientHeight, canvas.scrollWidth, canvas.scrollHeight);
   }
 
   render() {
     const theme = themeable(this.props.theme);
 
     return (
-      <div
-        {...theme(1, 'canvasContainer')}
-        ref={container => this.setContainer(container)}
-      />
+      <div {...theme(1, 'canvasContainer')}>
+        <canvas
+          ref={(canvas => this.setCanvas(canvas))}
+        >
+        </canvas>
+      </div>
     );
   }
 }
