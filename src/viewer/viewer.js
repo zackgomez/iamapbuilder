@@ -8,11 +8,11 @@ import gql from 'graphql-tag';
 import nullthrows from 'nullthrows';
 import classNames from 'classnames';
 
-import Board from './board';
-import {renderTileListValue} from './BoardUtils';
+import Board from '../lib/board';
+import {renderTileListValue} from '../lib/BoardUtils';
 import {BoardRenderer} from './renderer';
 
-import styles from './css/viewer.css';
+import styles from '../../css/viewer.css';
 
 type IndexItem = {
   index: number,

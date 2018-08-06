@@ -5,7 +5,7 @@ import React from 'react';
 import ReactDom from 'react-dom';
 import themeable from 'react-themeable';
 
-import Board from './board';
+import Board from '../lib/board';
 
 function drawGridLayer(ctx: CanvasRenderingContext2D, board: Board, scale: number): void {
   const width = board.getWidth();

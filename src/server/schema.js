@@ -1,14 +1,14 @@
 /* @flow */
 
-import type {MapIndexEntry} from './MapIndex';
+import type {MapIndexEntry} from '../lib/MapIndex';
 
 import {gql} from 'apollo-server';
 import nullthrows from 'nullthrows';
 
 import fs from 'mz/fs';
-import Board from './board';
-import {genMapIndex} from './MapIndex';
-import {filenameFromMapName} from './maps';
+import Board from '../lib/board';
+import {genMapIndex} from '../lib/MapIndex';
+import {filenameFromMapName} from '../lib/maps';
 
 export const typeDefs = gql`
   type MapDefinition {

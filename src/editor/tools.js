@@ -4,10 +4,10 @@
 import _ from 'lodash';
 import nullthrows from 'nullthrows';
 
-import Board from './board';
-import type {Cell, EdgeDirection, Edge} from './board';
+import Board from '../lib/board';
+import type {Cell, EdgeDirection, Edge} from '../lib/board';
 import {makeButton} from './UIUtils';
-import {checkBoardTiles} from './BoardUtils';
+import {checkBoardTiles} from '../lib/BoardUtils';
 import ApolloClient from 'apollo-boost';
 import gql from 'graphql-tag';
 

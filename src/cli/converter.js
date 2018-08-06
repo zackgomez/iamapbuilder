@@ -1,7 +1,7 @@
 /* @flow */
 import _ from 'lodash';
-import Board from './board';
-import {renderTileListValue} from './BoardUtils';
+import Board from '../lib/board';
+import {renderTileListValue} from '../lib/BoardUtils';
 
 const EdgeTypeToBorderStyle = {
   Nothing: null,

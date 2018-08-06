@@ -1,12 +1,12 @@
 /* @flow */
-import type {MapIndexEntry} from './MapIndex';
+import type {MapIndexEntry} from '../lib/MapIndex';
 
 import commander from 'commander';
 import fs from 'mz/fs';
 import readline from 'mz/readline';
 
 import {genAuth} from './auth';
-import {checkBoardTiles} from './BoardUtils';
+import {checkBoardTiles} from '../lib/BoardUtils';
 import {
   makeCreateSheetRequest,
   makeUpdateCellsRequest,
@@ -16,12 +16,12 @@ import {
 import {genBatchUpdate, genSpreadsheets} from './google-api-wrapper';
 
 import {genEditMode} from './edit_map_tiles';
-import {genMapIndex, genWriteMapIndex} from './MapIndex';
+import {genMapIndex, genWriteMapIndex} from '../lib/MapIndex';
 import {convertSheet} from './sheet_to_map';
-import {filenameFromMapName} from './maps';
+import {filenameFromMapName} from '../lib/maps';
 import * as _ from 'lodash';
 
-import Board from './board';
+import Board from '../lib/board';
 
 async function genDownloadSpreadsheetCommand(
   spreadsheetId: string,

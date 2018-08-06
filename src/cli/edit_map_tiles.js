@@ -3,11 +3,11 @@ import _ from 'lodash';
 import invariant from 'invariant';
 import nullthrows from 'nullthrows';
 
-import Board from './board';
+import Board from '../lib/board';
 import fs from 'mz/fs';
 import readline from 'mz/readline';
-import {checkBoardTiles} from './BoardUtils';
-import {TileSets, MissionTypes, BriefingLocations} from './GameData';
+import {checkBoardTiles} from '../lib/BoardUtils';
+import {TileSets, MissionTypes, BriefingLocations} from '../lib/GameData';
 
 type State = {
   filename: ?string,

@@ -5,8 +5,8 @@ const path = require('path');
 
 const config = {
   entry: {
-    viewer: './viewer-entry.js',
-    editor: './editor-entry.js',
+    viewer: './src/viewer/viewer-entry.js',
+    editor: './src/editor/editor-entry.js',
   },
   output: {
     path: path.resolve(__dirname, 'build'),

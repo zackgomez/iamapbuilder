@@ -1,6 +1,6 @@
 /* @flow */
 
-import Board from './board.js';
+import Board from '../lib/board.js';
 import 'pixi.js';
 import _ from 'lodash';
 

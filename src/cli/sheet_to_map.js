@@ -4,8 +4,8 @@ import fs from 'mz/fs';
 import _ from 'lodash';
 import invariant from 'invariant';
 
-import Board from './board';
-import type {Cell, Edge, EdgeDirection} from './board';
+import Board from '../lib/board';
+import type {Cell, Edge, EdgeDirection} from '../lib/board';
 
 type Color = {
   red?: number,
