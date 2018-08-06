@@ -4,10 +4,13 @@
 const path = require('path');
 
 const config = {
-  entry: './entry.js',
+  entry: {
+    viewer: './viewer-entry.js',
+    editor: './editor-entry.js',
+  },
   output: {
     path: path.resolve(__dirname, 'build'),
-    filename: 'bundle.js',
+    filename: '[name].bundle.js',
   },
   devtool: 'cheap-module-source-map',
   mode: 'development',

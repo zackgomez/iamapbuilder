@@ -139,8 +139,6 @@ export class BoardRenderer extends React.Component<Props> {
     canvas.width = 2 * PADDING + board.getWidth() * scale;
     canvas.height = 2 * PADDING + board.getHeight() * scale;
 
-    console.log(screenHeight, board.getHeight(), canvas.height, scale);
-
     // background
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, screenWidth, screenHeight);
@@ -166,12 +164,7 @@ export class BoardRenderer extends React.Component<Props> {
       return;
     }
 
-    if (canvas.width !== canvas.clientWidth ||
-      canvas.height !== canvas.clientHeight) {
-        console.log('size mismatch', canvas.width, canvas.height, canvas.clientWidth, canvas.clientHeight);
-      }
-
-    console.log(canvas.clientWidth, canvas.clientHeight, canvas.scrollWidth, canvas.scrollHeight);
+    // TODO resize canvas if necessary
   }
 
   render() {

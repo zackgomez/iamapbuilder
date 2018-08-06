@@ -11,7 +11,9 @@ let app = express();
 app.set('port', process.env.PORT || 3000);
 app.set('host', process.env.HOST || '0.0.0.0');
 
-app.use(express.static('public'));
+app.use(express.static('public', {
+  extensions: ['html'],
+}));
 app.use('/build', express.static('build'));
 
 const server = new ApolloServer({
