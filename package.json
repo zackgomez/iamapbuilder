@@ -51,7 +51,6 @@
   "scripts": {
     "start": "webpack && babel-node src/server/graphql-server.js",
     "format": "prettier --single-quote --trailing-comma all --no-bracket-spacing --print-width 90 --write 'src/**/*.js'",
-    "mapbuilder": "babel-node mapbuilder.js",
-    "mb": "babel-node src/cli/mapbuilder.js"
+    "mb": "babel-node -- src/cli/mapbuilder.js"
   }
 }

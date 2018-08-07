@@ -1,9 +1,11 @@
 /* @flow */
+
 import type {MapIndexEntry} from '../lib/MapIndex';
 
 import commander from 'commander';
 import fs from 'mz/fs';
 import readline from 'mz/readline';
+import nullthrows from 'nullthrows';
 
 import {drawGridLayer, drawEdgeLayer} from '../lib/CanvasRenderer';
 import {genAuth} from './auth';
@@ -248,28 +250,51 @@ async function genRenderMap(file: string, cmd: any): Promise<void> {
   const content = await fs.readFile(file);
   const board = Board.fromSerialized(content);
 
+  const format = cmd.svg ? 'svg' : (cmd.pdf ? 'pdf' : 'png');
+
   const PADDING = 5;
   const SCALE = 50;
-  const width = board.getWidth() * SCALE + 2 * PADDING;
-  const height = board.getHeight() * SCALE + 2 * PADDING;
+  const ZOOM = 2;
+  const width = ZOOM * (board.getWidth() * SCALE + 2 * PADDING);
+  const height = ZOOM * (board.getHeight() * SCALE + 2 * PADDING);
 
-  const canvas = new Canvas(width, height);
+  const canvas = new Canvas(width, height, format === 'png' ? null : format);
   const ctx = canvas.getContext('2d');
 
   ctx.fillStyle = 'white';
   ctx.fillRect(0, 0, width, height);
+
+  ctx.scale(ZOOM, ZOOM);
 
   ctx.translate(PADDING, PADDING);
 
   drawGridLayer(ctx, board, SCALE);
   drawEdgeLayer(ctx, board, SCALE);
 
-  const outStream = fs.createWriteStream('out.png');
-  const pngStream = canvas.pngStream();
-  pngStream.on('data', chunk => {
-    outStream.write(chunk);
-  });
-  pngStream.on('end', () => console.log('end'));
+  const outputFile = ((cmd.output || null) : ?string);
+
+  let outStream;
+  if (outputFile !== null) {
+    outStream = fs.createWriteStream(outputFile);
+  } else {
+    outStream = process.stdout;
+  }
+  outStream = nullthrows(outStream);
+
+  if (format === 'png') {
+    const pngStream = canvas.pngStream();
+    pngStream.on('data', chunk => {
+      outStream.write(chunk);
+    });
+    pngStream.on('end', () => {
+      if (outputFile !== null) {
+        console.log(`wrote to ${outputFile}`);
+      }
+    });
+  } else if (format === 'svg' || format === 'pdf') {
+    outStream.write(canvas.toBuffer());
+  }
+
 }
 
 function wrapAsyncCommand(asyncCommand) {
@@ -315,6 +340,14 @@ commander
 
 commander
   .command('render <file>')
+  .description('render the map to an image, default png')
+  .option('-o, --output <file>', 'output file')
+  .option('--svg', 'output in svg format')
+  .option('--pdf', 'output in pdf format')
   .action(wrapAsyncCommand(genRenderMap))
 
 commander.parse(process.argv);
+
+if (!process.argv.slice(2).length) {
+  commander.outputHelp();
+}
