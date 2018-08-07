@@ -5,6 +5,7 @@ import type {MapIndexEntry} from '../lib/MapIndex';
 import commander from 'commander';
 import fs from 'mz/fs';
 import readline from 'mz/readline';
+import path from 'path';
 import nullthrows from 'nullthrows';
 
 import {drawGridLayer, drawEdgeLayer} from '../lib/CanvasRenderer';
@@ -271,15 +272,27 @@ async function genRenderMap(file: string, cmd: any): Promise<void> {
   drawGridLayer(ctx, board, SCALE);
   drawEdgeLayer(ctx, board, SCALE);
 
-  const outputFile = ((cmd.output || null) : ?string);
+  let outputFile = ((cmd.output : ?string) || null);
 
   let outStream;
-  if (outputFile !== null) {
+  if (outputFile) {
+    try {
+      const stats = await fs.stat(outputFile);
+      if (stats.isDirectory()) {
+        outputFile = path.format({
+          root: outputFile,
+          name: path.basename(file, '.json'),
+          ext: '.'+format,
+        });
+      }
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
     outStream = fs.createWriteStream(outputFile);
   } else {
     outStream = process.stdout;
   }
-  outStream = nullthrows(outStream);
 
   if (format === 'png') {
     const pngStream = canvas.pngStream();
