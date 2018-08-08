@@ -288,7 +288,7 @@ async function genRenderMap(files: Array<string>, cmd: any): Promise<void> {
         const stats = await fs.stat(outputFile);
         if (stats.isDirectory()) {
           outputFile = path.format({
-            root: outputFile,
+            dir: outputFile,
             name: path.basename(file, '.json'),
             ext: '.'+format,
           });
