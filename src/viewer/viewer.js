@@ -109,7 +109,7 @@ export default class MapViewerApp extends React.Component<Props, State> {
   };
 
   onToggleMapList = () => {
-    this.setState({listExpanded: !this.state.listExpanded}, () => {
+    this.setState({listExpanded: !this.state.listExpanded, searchText: ''}, () => {
       if (this.state.listExpanded && this.searchBar) {
         this.searchBar.focus();
       }

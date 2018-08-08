@@ -15,6 +15,7 @@ app.use(express.static('public', {
   extensions: ['html'],
 }));
 app.use('/build', express.static('build'));
+app.use('/assets', express.static('build'));
 
 const server = new ApolloServer({
   // These will be defined for both new or existing servers

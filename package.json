@@ -53,6 +53,6 @@
     "start": "webpack && babel-node src/server/graphql-server.js",
     "format": "prettier --single-quote --trailing-comma all --no-bracket-spacing --print-width 90 --write 'src/**/*.js'",
     "mb": "babel-node -- src/cli/mapbuilder.js",
-    "build-viewer": "rm -fr viewer-site && mkdir -p viewer-site/renders && babel-node -- src/cli/mapbuilder.js generateViewerData > viewer_data.json && babel-node -- src/cli/mapbuilder.js render --format=svg -o viewer-site/renders maps/* && webpack --mode=production && cp build/viewer.bundle.js viewer-site/bundle.js && cp public/index.viewer.html viewer-site/index.html"
+    "build-viewer": "rm -fr viewer-site && mkdir -p viewer-site/renders && babel-node -- src/cli/mapbuilder.js generateViewerData > viewer_data.json && babel-node -- src/cli/mapbuilder.js render --format=svg -o viewer-site/renders maps/* && webpack --mode=production && mkdir -p viewer-site/assets && cp build/viewer.bundle.js viewer-site/assets/bundle.js && cp build/*.svg viewer-site/assets && cp public/index.viewer.html viewer-site/index.html"
   }
 }

@@ -50,7 +50,7 @@ const config = {
           {
             loader: 'file-loader',
             options: {
-              publicPath: 'build/',
+              publicPath: 'assets/',
             },
           },
         ],
