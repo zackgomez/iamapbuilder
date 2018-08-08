@@ -16,13 +16,25 @@
   flex-flow: column;
   display: flex;
   padding-left: 50;
-  padding-right: 50;
+  padding-right: 10;
   overflow-y: auto;
 }
 
-.renderImage {
+.infoPanel {
   flex: 0 0 auto;
-  align-self: flex-start;
+}
+
+.renderImage {
+  flex: 0 1 0;
+  min-width: 100;
+}
+
+.renderDiv {
+  flex: 1 0 auto;
+  background-size: contain;
+  background-repeat: no-repeat;
+  min-width: 250;
+  min-height: 250;
 }
 
 .leftPaneTitle {

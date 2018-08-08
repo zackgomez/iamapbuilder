@@ -71,7 +71,7 @@ const InfoPanel = (props: {item: IndexItem}) => {
     return <h3 key={i}>{title}: {renderTileListValue(tiles)}</h3>
   });
   return (
-    <div>
+    <div className={styles.infoPanel}>
       <h1>{item.title}</h1>
       <h2>{item.type}</h2>
       <h2>Location: {item.location}</h2>
@@ -148,7 +148,8 @@ export default class MapViewerApp extends React.Component<Props, State> {
   render() {
     const {searchText, selectedItem} = this.state;
     const image = selectedItem
-      ? <img key={selectedItem.renderURL} className={styles.renderImage} src={selectedItem.renderURL} />
+      //? <img key={selectedItem.renderURL} className={styles.renderImage} src={selectedItem.renderURL} />
+      ? <div className={styles.renderDiv} style={{backgroundImage: `url(${selectedItem.renderURL})`}} />
       : null;
     const panel = selectedItem
       ? <InfoPanel item={selectedItem} />
