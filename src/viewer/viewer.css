@@ -1,7 +1,46 @@
 .root {
   display: flex;
   height: 100%;
+  max-height: 100%;
   width: 100%;
+  flex-flow: column;
+}
+
+.panesContainer {
+  display: flex;
+  flex: 1 1 auto;
+}
+
+.topNav {
+  flex: 0 0 auto;
+  background-color: #FFF;
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+  flex-flow: row;
+  justify-content: center;
+  height: 40;
+}
+
+.topNavTitle {
+  flex: 0 0 auto;
+  padding: 0;
+  margin: auto;
+  align-self: center;
+}
+
+.topNavMapList {
+  background: url('./menu_icon.svg');
+  background-repeat: no-repeat;
+  flex: 0 1 auto;
+  width: 30;
+}
+
+.topNavSearch {
+  background: url('./search_icon.svg');
+  background-repeat: no-repeat;
+  flex: 0 1 auto;
+  width: 30;
 }
 
 .leftPane {
@@ -9,6 +48,18 @@
   flex-flow: column;
   flex: 0 0 auto;
   overflow-y: scroll;
+  min-width: 265;
+}
+
+@media (max-width: 960px) {
+  .leftPaneCollapsed {
+    display: none;
+  }
+  .topNavMapListCollapsed {
+    background-color: #f1f1f1;
+    color: initial;
+    min-width: initial;
+  }
 }
 
 .rightPane {
@@ -17,6 +68,7 @@
   display: flex;
   padding-left: 50;
   padding-right: 10;
+  padding-bottom: 10;
   overflow-y: auto;
 }
 
@@ -35,24 +87,11 @@
   background-repeat: no-repeat;
   min-width: 250;
   min-height: 250;
-}
-
-.leftPaneTitle {
-  margin: 0;
-  padding: 0;
-
-  padding-left: 5;
-  padding-right: 5;
-  padding-top: 5;
-  padding-bottom: 5;
-
-  margin-bottom: 5;
-
-  font-size: 1.5em;
+  max-width: 1000;
 }
 
 .searchBar {
-  flex: 1 0 auto;
+  flex: 0 0 auto;
   padding: 0;
   height: 3em;
   margin-right: 5;

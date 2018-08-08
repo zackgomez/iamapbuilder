@@ -5,10 +5,9 @@ import {Fragment} from 'react';
 import ReactDom from 'react-dom';
 import classNames from 'classnames';
 
-import styles from '../../css/viewer.css';
+import styles from './viewer.css';
 
 import index from '../../viewer_data.json';
-
 
 type IndexItem = {
   index: number,
@@ -31,6 +30,7 @@ type State = {
   error?: Error,
   index: Array<IndexItem>,
   searchText: string,
+  listExpanded: boolean,
 
   selectedItem: ?IndexItem,
 };
@@ -82,6 +82,7 @@ const InfoPanel = (props: {item: IndexItem}) => {
 
 export default class MapViewerApp extends React.Component<Props, State> {
   static defaultProps = {};
+  searchBar: ?HTMLInputElement;
 
   constructor(props: Props) {
     super(props);
@@ -90,6 +91,7 @@ export default class MapViewerApp extends React.Component<Props, State> {
       searchText: '',
       board: null,
       selectedItem: index[0],
+      listExpanded: true,
     };
   }
 
@@ -103,8 +105,16 @@ export default class MapViewerApp extends React.Component<Props, State> {
     if (this.state.selectedItem && this.state.selectedItem.index === item.index) {
       return;
     }
-    this.setState({selectedItem: item});
+    this.setState({selectedItem: item, listExpanded: false});
   };
+
+  onToggleMapList = () => {
+    this.setState({listExpanded: !this.state.listExpanded}, () => {
+      if (this.state.listExpanded && this.searchBar) {
+        this.searchBar.focus();
+      }
+    });
+  }
 
   getCandidateItems(items: Array<IndexItem>, filter: ?string): Array<IndexItem> {
     if (!filter) {
@@ -156,13 +166,17 @@ export default class MapViewerApp extends React.Component<Props, State> {
       : null;
 
     return (
-      <Fragment>
-        <div className={styles.root}>
-          <div className={styles.leftPane}>
-            <h1 className={styles.leftPaneTitle}>
-              Imperial Assault Tile Guide
-            </h1>
+      <div className={styles.root}>
+        <div className={styles.topNav}>
+          <div
+            className={styles.topNavSearch}
+            onClick={this.onToggleMapList} />
+          <h1 className={styles.topNavTitle}>Imperial Assault Tile Guide</h1>
+        </div>
+        <div className={styles.panesContainer}>
+          <div className={classNames(styles.leftPane, {[styles.leftPaneCollapsed]: !this.state.listExpanded})}>
             <input className={styles.searchBar}
+              ref={(searchBar) => this.searchBar = searchBar}
               placeholder="Search..."
               type="search"
               value={searchText}
@@ -175,7 +189,7 @@ export default class MapViewerApp extends React.Component<Props, State> {
             {image}
           </div>
         </div>
-      </Fragment>
+      </div>
     );
   }
 }

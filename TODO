@@ -1,8 +1,7 @@
 # Viewer
 
 * test on iPad and different sized screens - media query as necessary
-* make sure map display doesn't get funky
-* map needs to resize on window size changes and have a minimum scale so it doesn't get too tiny
+ * need a hideable sidebar, collapse on map select, open on page load
 
 * optimize renderer to coalesce grid cells and edges for cleaner and smaller representations
 
@@ -19,6 +18,4 @@
 # PDF
 
 * Alternative PDF creation 
- * maybe https://www.npmjs.com/package/canvas to generate a pdf of the maps
- * pdfjs to create full blown pdf?
-  
+ * embed pdf subdocuments

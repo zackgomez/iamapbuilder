@@ -43,7 +43,18 @@ const config = {
             }
           },
         ],
-      }
+      },
+      {
+        test: /\.(png|svg|jpg|gif)$/,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              publicPath: 'build/',
+            },
+          },
+        ],
+      },
     ],
   },
 };
