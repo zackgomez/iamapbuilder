@@ -3,15 +3,12 @@
 import React from 'react';
 import {Fragment} from 'react';
 import ReactDom from 'react-dom';
-import ApolloClient from 'apollo-boost';
-import gql from 'graphql-tag';
-import nullthrows from 'nullthrows';
 import classNames from 'classnames';
 
-import Board from '../lib/board';
-import {renderTileListValue} from '../lib/BoardUtils';
-
 import styles from '../../css/viewer.css';
+
+import index from '../../viewer_data.json';
+
 
 type IndexItem = {
   index: number,
@@ -19,54 +16,65 @@ type IndexItem = {
   location: string,
   type: string,
   color: string,
-  index_location: string,
+  indexLocation: string,
+  tileLists: Array<{
+    title: string,
+    tiles: Array<string>,
+  }>,
+  renderURL: string,
 };
 
 type Props = {
-  apollo: ApolloClient,
 };
+
 type State = {
   error?: Error,
-  index?: Array<IndexItem>,
+  index: Array<IndexItem>,
   searchText: string,
 
-  selectedBoardIndex: ?number,
-  board: ?Board,
-  renderURL: ?string,
+  selectedItem: ?IndexItem,
 };
 
-const FetchMapListQuery = gql`
-  query FetchMapList {
-    map_list {
-      index
-      title
-      location
-      type
-      color
-      index_location
-    }
+function renderTileListItem(tile: string, count: number) {
+  if (count < 2) {
+    return tile;
   }
-`;
+  return `${tile.trim()}(${count})`;
+}
 
-const FetchMapDataQuery = gql`
-  query FetchMap($index: Int!) {
-    map(index: $index) {
-      render_url
-      data
+function renderTileListValue(tileList: Array<string>): string {
+  const reduced = [];
+  let lastTile = null;
+  let count = 0;
+  tileList.forEach(tile => {
+    if (tile !== lastTile) {
+      if (lastTile !== null) {
+        reduced.push(renderTileListItem(lastTile, count));
+      }
+      lastTile = tile;
+      count = 1;
+    } else {
+      count++;
     }
+  });
+  if (lastTile) {
+    reduced.push(renderTileListItem(lastTile, count));
   }
-`;
 
-const InfoPanel = (props: {board: Board}) => {
-  const {board} = props;
-  const tileElements = board.getTileLists().map(({tiles, title}, i) => {
+  return reduced.join(', ');
+}
+
+
+const InfoPanel = (props: {item: IndexItem}) => {
+  const {item} = props;
+  const tileElements = item.tileLists.map(({tiles, title}, i) => {
     return <h3 key={i}>{title}: {renderTileListValue(tiles)}</h3>
   });
   return (
     <div>
-      <h1>{board.getName()}</h1>
-      <h2>{board.getMapType()}</h2>
-      <h2>Location: {board.getBriefingLocation()}</h2>
+      <h1>{item.title}</h1>
+      <h2>{item.type}</h2>
+      <h2>Location: {item.location}</h2>
       {tileElements}
     </div>
   );
@@ -78,29 +86,11 @@ export default class MapViewerApp extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
+      index: index,
       searchText: '',
       board: null,
-      selectedBoardIndex: null,
-      renderURL: null,
+      selectedItem: index[0],
     };
-  }
-
-  componentDidMount() {
-    this.props.apollo
-      .query({
-        query: FetchMapListQuery,
-        variables: {},
-      })
-      .then(result => {
-        const mapIndex = result.data.map_list;
-        this.setState({index: mapIndex});
-        if (mapIndex.length > 0) {
-          this.onItemPressed(mapIndex[0]);
-        }
-      })
-      .catch(error => {
-        this.setState({error});
-      });
   }
 
   onSearchChange = (event: any) => {
@@ -110,30 +100,20 @@ export default class MapViewerApp extends React.Component<Props, State> {
   };
 
   onItemPressed = (item: IndexItem) => {
-    const {board} = this.state;
-    if (board && board.getName() === item.title) {
+    if (this.state.selectedItem && this.state.selectedItem.index === item.index) {
       return;
     }
-    this.props.apollo
-      .query({
-        query: FetchMapDataQuery,
-        variables: {index: item.index},
-      })
-      .then(response => {
-        const board = Board.fromSerialized(response.data.map.data);
-        this.setState({board, selectedBoardIndex: item.index, renderURL: response.data.map.render_url});
-      });
+    this.setState({selectedItem: item});
   };
 
   getCandidateItems(items: Array<IndexItem>, filter: ?string): Array<IndexItem> {
-    const index = nullthrows(this.state.index);
     if (!filter) {
-      return index;
+      return items;
     }
 
     const finalFilter = filter.toLowerCase();
 
-    return index.filter(item => {
+    return items.filter(item => {
       return item.title.toLowerCase().match(finalFilter);
     });
   }
@@ -148,13 +128,13 @@ export default class MapViewerApp extends React.Component<Props, State> {
     );
 
     const items = candidateItems.map((item) => {
-      const selected = this.state.selectedBoardIndex === item.index;
+      const selected = this.state.selectedItem && this.state.selectedItem.index === item.index;
       return (
         <div onClick={() => this.onItemPressed(item)}
           key={item.title}
           className={classNames(styles.indexItem, {[styles.indexItemActive]: selected})}>
           <h3 className={styles.indexItemTitle}>{item.title}</h3>
-          <h4 className={styles.indexItemLocation}>{item.index_location}</h4>
+          <h4 className={styles.indexItemLocation}>{item.indexLocation}</h4>
         </div>
       )
     });
@@ -166,10 +146,12 @@ export default class MapViewerApp extends React.Component<Props, State> {
   }
 
   render() {
-    const {searchText, board, renderURL} = this.state;
-    const image = renderURL ? <img className={styles.renderImage} src={renderURL} /> : null;
-    const panel = board
-      ? <InfoPanel board={board} />
+    const {searchText, selectedItem} = this.state;
+    const image = selectedItem
+      ? <img key={selectedItem.renderURL} className={styles.renderImage} src={selectedItem.renderURL} />
+      : null;
+    const panel = selectedItem
+      ? <InfoPanel item={selectedItem} />
       : null;
 
     return (

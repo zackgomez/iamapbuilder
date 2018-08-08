@@ -5,12 +5,14 @@
 }
 
 .leftPane {
+  display: flex;
+  flex-flow: column;
   flex: 0 0 auto;
   overflow-y: scroll;
 }
 
 .rightPane {
-  flex: 1 1 auto;
+  flex: 1 1 100%;
   flex-flow: column;
   display: flex;
   padding-left: 50;
@@ -18,12 +20,9 @@
   overflow-y: auto;
 }
 
-.canvasContainer {
-  flex: 1 1 100%;
-}
-
 .renderImage {
-  flex: 1 1 50%;
+  flex: 1 1 auto;
+  align-self: flex-start;
 }
 
 .leftPaneTitle {
@@ -41,14 +40,16 @@
 }
 
 .searchBar {
-  flex: 1 0;
-  margin-left: 8;
-  width: 80%;
+  flex: 1 0 auto;
+  padding: 0;
+  height: 3em;
+  margin-right: 5;
 }
 
 .indexItemsContainer {
   display: flex;
   flex-flow: column;
+  flex: 1 0 auto;
   padding-top: 5;
   padding-bottom: 5;
 }

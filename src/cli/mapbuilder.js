@@ -331,6 +331,7 @@ async function genWriteViewerData(cmd: any): Promise<void> {
       renderURL: `renders/${baseFilenameFromMapName(item.title)}.svg`,
       indexLocation: getIndexLocation(item.location),
       color: getCSSColorForMapType(item.type),
+      tileLists: board.getTileLists(),
     }
   }));
 
