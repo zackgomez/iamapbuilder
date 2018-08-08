@@ -10,7 +10,7 @@ import nullthrows from 'nullthrows';
 
 import {drawGridLayer, drawEdgeLayer} from '../lib/CanvasRenderer';
 import {genAuth} from './auth';
-import {checkBoardTiles} from '../lib/BoardUtils';
+import {checkBoardTiles, getIndexLocation, getCSSColorForMapType} from '../lib/BoardUtils';
 import {
   makeCreateSheetRequest,
   makeUpdateCellsRequest,
@@ -24,10 +24,16 @@ import Canvas from 'canvas';
 import {genEditMode} from './edit_map_tiles';
 import {genMapIndex, genWriteMapIndex} from '../lib/MapIndex';
 import {convertSheet} from './sheet_to_map';
-import {filenameFromMapName} from '../lib/maps';
+import {filenameFromMapName, baseFilenameFromMapName} from '../lib/maps';
 import * as _ from 'lodash';
 
 import Board from '../lib/board';
+
+async function genBoard(item: MapIndexEntry): Promise<Board> {
+  const filename = filenameFromMapName(item.title);
+  const content = await fs.readFile(`maps/${filename}`);
+  return Board.fromSerialized(content);
+}
 
 async function genDownloadSpreadsheetCommand(
   spreadsheetId: string,
@@ -247,67 +253,88 @@ async function genRefreshIndex(): Promise<void> {
   console.log(changedItems);
 }
 
-async function genRenderMap(file: string, cmd: any): Promise<void> {
-  const content = await fs.readFile(file);
-  const board = Board.fromSerialized(content);
-
-  const format = cmd.svg ? 'svg' : (cmd.pdf ? 'pdf' : 'png');
+async function genRenderMap(files: Array<string>, cmd: any): Promise<void> {
+  const format = cmd.format;
 
   const PADDING = 5;
-  const SCALE = 50;
-  const ZOOM = 2;
-  const width = ZOOM * (board.getWidth() * SCALE + 2 * PADDING);
-  const height = ZOOM * (board.getHeight() * SCALE + 2 * PADDING);
+  const SCALE = !isNaN(cmd.scale) && cmd.scale > 0 ? cmd.scale : 50;
+  const ZOOM = 1;
 
-  const canvas = new Canvas(width, height, format === 'png' ? null : format);
-  const ctx = canvas.getContext('2d');
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const content = await fs.readFile(file);
+    const board = Board.fromSerialized(content);
+    const width = ZOOM * (board.getWidth() * SCALE + 2 * PADDING);
+    const height = ZOOM * (board.getHeight() * SCALE + 2 * PADDING);
 
-  ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, width, height);
+    const canvas = new Canvas(width, height, format === 'png' ? null : format);
+    const ctx = canvas.getContext('2d');
 
-  ctx.scale(ZOOM, ZOOM);
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, width, height);
 
-  ctx.translate(PADDING, PADDING);
+    ctx.scale(ZOOM, ZOOM);
 
-  drawGridLayer(ctx, board, SCALE);
-  drawEdgeLayer(ctx, board, SCALE);
+    ctx.translate(PADDING, PADDING);
 
-  let outputFile = ((cmd.output : ?string) || null);
+    drawGridLayer(ctx, board, SCALE);
+    drawEdgeLayer(ctx, board, SCALE);
 
-  let outStream;
-  if (outputFile) {
-    try {
-      const stats = await fs.stat(outputFile);
-      if (stats.isDirectory()) {
-        outputFile = path.format({
-          root: outputFile,
-          name: path.basename(file, '.json'),
-          ext: '.'+format,
-        });
+    let outputFile = ((cmd.output : ?string) || null);
+
+    let outStream;
+    if (outputFile) {
+      try {
+        const stats = await fs.stat(outputFile);
+        if (stats.isDirectory()) {
+          outputFile = path.format({
+            root: outputFile,
+            name: path.basename(file, '.json'),
+            ext: '.'+format,
+          });
+        }
+      } catch (e) {
+        console.log(e);
+        throw e;
       }
-    } catch (e) {
-      console.log(e);
-      throw e;
+      outStream = fs.createWriteStream(outputFile);
+    } else {
+      outStream = process.stdout;
     }
-    outStream = fs.createWriteStream(outputFile);
-  } else {
-    outStream = process.stdout;
-  }
 
-  if (format === 'png') {
-    const pngStream = canvas.pngStream();
-    pngStream.on('data', chunk => {
-      outStream.write(chunk);
-    });
-    pngStream.on('end', () => {
-      if (outputFile !== null) {
-        console.log(`wrote to ${outputFile}`);
-      }
-    });
-  } else if (format === 'svg' || format === 'pdf') {
-    outStream.write(canvas.toBuffer());
+    if (format === 'png') {
+      const pngStream = canvas.pngStream();
+      pngStream.on('data', chunk => {
+        outStream.write(chunk);
+      });
+      pngStream.on('end', () => {
+        if (outputFile !== null) {
+          console.log(`wrote to ${outputFile}`);
+        }
+      });
+    } else if (format === 'svg' || format === 'pdf') {
+      outStream.write(canvas.toBuffer());
+    }
   }
+}
 
+async function genWriteViewerData(cmd: any): Promise<void> {
+  const mapIndex = await genMapIndex();
+
+  const viewerData = await Promise.all(mapIndex.map(async (item) => {
+    const board = await genBoard(item);
+    return {
+      index: item.index,
+      title: item.title,
+      location: item.location,
+      type: item.type,
+      renderURL: `renders/${baseFilenameFromMapName(item.title)}.svg`,
+      indexLocation: getIndexLocation(item.location),
+      color: getCSSColorForMapType(item.type),
+    }
+  }));
+
+  process.stdout.write(JSON.stringify(viewerData));
 }
 
 function wrapAsyncCommand(asyncCommand) {
@@ -352,12 +379,16 @@ commander
   .action(wrapAsyncCommand(genRefreshIndex))
 
 commander
-  .command('render <file>')
+  .command('render [files...]')
   .description('render the map to an image, default png')
   .option('-o, --output <file>', 'output file')
-  .option('--svg', 'output in svg format')
-  .option('--pdf', 'output in pdf format')
+  .option('-s, --scale <number>', 'cell scale size', parseInt)
+  .option('--format <format>', 'output format png,svg,pdf', /^(png|svg|pdf)$/i, 'png')
   .action(wrapAsyncCommand(genRenderMap))
+
+commander
+  .command('generateViewerData')
+  .action(wrapAsyncCommand(genWriteViewerData));
 
 commander.parse(process.argv);
 

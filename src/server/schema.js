@@ -7,8 +7,9 @@ import nullthrows from 'nullthrows';
 
 import fs from 'mz/fs';
 import Board from '../lib/board';
+import {getCSSColorForMapType, getIndexLocation} from '../lib/BoardUtils';
 import {genMapIndex} from '../lib/MapIndex';
-import {filenameFromMapName} from '../lib/maps';
+import {filenameFromMapName, baseFilenameFromMapName} from '../lib/maps';
 
 export const typeDefs = gql`
   type MapDefinition {
@@ -19,6 +20,7 @@ export const typeDefs = gql`
     index_location: String
     data: String
     color: String
+    render_url: String
   }
 
   type MapSearchResult {
@@ -74,33 +76,13 @@ export const resolvers = {
       return await fs.readFile('maps/' + filename);
     },
     color: (parent: MapIndexEntry) => {
-      const type = parent.type.toLowerCase();
-      if (type.startsWith('red')) {
-        return 'rgb(255, 0, 0)';
-      } else if (type.startsWith('gray')) {
-        return 'rgb(127, 127, 127)';
-      } else if (type.startsWith('green')) {
-        return 'rgb(0, 176, 80)';
-      } else if (type.startsWith('agenda')) {
-        return 'rgb(31, 73, 126)';
-      }
-      return 'rgb(0, 0, 0)';
+      return getCSSColorForMapType(parent.type);
     },
     index_location: async (parent: MapIndexEntry) => {
-      let m;
-      if (m = parent.location.match(/(.*), page (\d+) \((.*)\)/)) {
-        // Jabba's Realm Rulebook, page 4 (Wave 9)
-        const wave = m[3];
-        const set = m[1].replace(' Rulebook', '');
-        return `${wave} (${set})`;
-      } else if (m = parent.location.match(/.* \((.*)\)/)) {
-        // ISB Infiltrators (Wave 8)
-        return m[1];
-      } else if (parent.location.match(/Campaign Guide.*/)) {
-        return 'Core Game';
-      }
-
-      return 'UNKNOWN';//parent.location;
+      return getIndexLocation(parent.location);
+    },
+    render_url: async (parent: MapIndexEntry) => {
+      return `renders/${baseFilenameFromMapName(parent.title)}.svg`;
     },
   },
   Mutation: {

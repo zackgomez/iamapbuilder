@@ -57,3 +57,34 @@ export function renderTileListValue(tileList: Array<string>): string {
 
   return reduced.join(', ');
 }
+
+export function getCSSColorForMapType(type: string): string {
+    type = type.toLowerCase();
+    if (type.startsWith('red')) {
+      return 'rgb(255, 0, 0)';
+    } else if (type.startsWith('gray')) {
+      return 'rgb(127, 127, 127)';
+    } else if (type.startsWith('green')) {
+      return 'rgb(0, 176, 80)';
+    } else if (type.startsWith('agenda')) {
+      return 'rgb(31, 73, 126)';
+    }
+    return 'rgb(0, 0, 0)';
+}
+
+export function getIndexLocation(location: string): string {
+    let m;
+    if (m = location.match(/(.*), page (\d+) \((.*)\)/)) {
+      // Jabba's Realm Rulebook, page 4 (Wave 9)
+      const wave = m[3];
+      const set = m[1].replace(' Rulebook', '');
+      return `${wave} (${set})`;
+    } else if (m = location.match(/.* \((.*)\)/)) {
+      // ISB Infiltrators (Wave 8)
+      return m[1];
+    } else if (location.match(/Campaign Guide.*/)) {
+      return 'Core Game';
+    }
+
+    return 'UNKNOWN';
+}

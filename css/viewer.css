@@ -10,14 +10,20 @@
 }
 
 .rightPane {
-  flex: 1 1 100%;
+  flex: 1 1 auto;
   flex-flow: column;
   display: flex;
   padding-left: 50;
+  padding-right: 50;
+  overflow-y: auto;
 }
 
 .canvasContainer {
   flex: 1 1 100%;
+}
+
+.renderImage {
+  flex: 1 1 50%;
 }
 
 .leftPaneTitle {

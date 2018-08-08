@@ -10,7 +10,6 @@ import classNames from 'classnames';
 
 import Board from '../lib/board';
 import {renderTileListValue} from '../lib/BoardUtils';
-import {BoardRenderer} from './renderer';
 
 import styles from '../../css/viewer.css';
 
@@ -33,6 +32,7 @@ type State = {
 
   selectedBoardIndex: ?number,
   board: ?Board,
+  renderURL: ?string,
 };
 
 const FetchMapListQuery = gql`
@@ -51,6 +51,7 @@ const FetchMapListQuery = gql`
 const FetchMapDataQuery = gql`
   query FetchMap($index: Int!) {
     map(index: $index) {
+      render_url
       data
     }
   }
@@ -80,6 +81,7 @@ export default class MapViewerApp extends React.Component<Props, State> {
       searchText: '',
       board: null,
       selectedBoardIndex: null,
+      renderURL: null,
     };
   }
 
@@ -119,7 +121,7 @@ export default class MapViewerApp extends React.Component<Props, State> {
       })
       .then(response => {
         const board = Board.fromSerialized(response.data.map.data);
-        this.setState({board, selectedBoardIndex: item.index});
+        this.setState({board, selectedBoardIndex: item.index, renderURL: response.data.map.render_url});
       });
   };
 
@@ -164,11 +166,8 @@ export default class MapViewerApp extends React.Component<Props, State> {
   }
 
   render() {
-    const {searchText, board} = this.state;
-
-    const map = board
-      ? <BoardRenderer key={board.getName()} board={board} theme={styles} />
-      : null;
+    const {searchText, board, renderURL} = this.state;
+    const image = renderURL ? <img className={styles.renderImage} src={renderURL} /> : null;
     const panel = board
       ? <InfoPanel board={board} />
       : null;
@@ -190,7 +189,7 @@ export default class MapViewerApp extends React.Component<Props, State> {
           </div>
           <div className={styles.rightPane}>
             {panel}
-            {map}
+            {image}
           </div>
         </div>
       </Fragment>
