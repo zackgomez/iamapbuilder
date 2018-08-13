@@ -8,7 +8,7 @@ import readline from 'mz/readline';
 import path from 'path';
 import nullthrows from 'nullthrows';
 
-import {drawGridLayer, drawEdgeLayer} from '../lib/CanvasRenderer';
+import {drawBoard} from '../lib/CanvasRenderer';
 import {genAuth} from './auth';
 import {checkBoardTiles, getIndexLocation, getCSSColorForMapType} from '../lib/BoardUtils';
 import {
@@ -277,8 +277,7 @@ async function genRenderMap(files: Array<string>, cmd: any): Promise<void> {
 
     ctx.translate(PADDING, PADDING);
 
-    drawGridLayer(ctx, board, SCALE);
-    drawEdgeLayer(ctx, board, SCALE);
+    drawBoard(ctx, board, SCALE);
 
     let outputFile = ((cmd.output : ?string) || null);
 

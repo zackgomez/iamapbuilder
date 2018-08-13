@@ -6,7 +6,7 @@ import ReactDom from 'react-dom';
 import themeable from 'react-themeable';
 
 import Board from '../lib/board';
-import {drawEdgeLayer, drawGridLayer} from '../lib/CanvasRenderer';
+import {drawBoard} from '../lib/CanvasRenderer';
 
 
 type Props = {
@@ -47,8 +47,7 @@ export class BoardRenderer extends React.Component<Props> {
     // padding
     ctx.translate(PADDING, PADDING);
 
-    drawGridLayer(ctx, board, scale);
-    drawEdgeLayer(ctx, board, scale);
+    drawBoard(ctx, board, scale);
   }
 
   componentDidMount() {

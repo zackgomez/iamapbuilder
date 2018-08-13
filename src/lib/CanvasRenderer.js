@@ -2,22 +2,12 @@
 
 import type Board from './board';
 
-export function drawGridLayer(ctx: CanvasRenderingContext2D, board: Board, scale: number): void {
+function drawGridLayer(ctx: CanvasRenderingContext2D, board: Board, scale: number): void {
   const width = board.getWidth();
   const height = board.getHeight();
 
   ctx.lineWidth = 1;
   ctx.strokeStyle = '#999999';
-  ctx.beginPath();
-  for (let x = 0; x <= width; x++) {
-    ctx.moveTo(x * scale, 0);
-    ctx.lineTo(x * scale, height * scale);
-  }
-  for (let y = 0; y <= height; y++) {
-    ctx.moveTo(0, y * scale);
-    ctx.lineTo(width * scale, y * scale);
-  }
-  ctx.stroke();
 
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
@@ -42,7 +32,9 @@ export function drawGridLayer(ctx: CanvasRenderingContext2D, board: Board, scale
   }
 }
 
-export function drawEdgeLayer(ctx: CanvasRenderingContext2D, board: Board, scale: number): void {
+export function drawBoard(ctx: CanvasRenderingContext2D, board: Board, scale: number): void {
+  drawGridLayer(ctx, board, scale);
+  
   for (let x = 0; x <= board.getWidth(); x++) {
     for (let y = 0; y <= board.getHeight(); y++) {
       ['Vertical', 'Horizontal'].forEach(dir => {
