@@ -1,6 +1,6 @@
 /* @flow */
 
-import type Board from './board';
+import type Board, {Edge, EdgeDirection} from './board';
 
 function drawGridLayer(ctx: CanvasRenderingContext2D, board: Board, scale: number): void {
   const width = board.getWidth();
@@ -32,65 +32,93 @@ function drawGridLayer(ctx: CanvasRenderingContext2D, board: Board, scale: numbe
   }
 }
 
+function iterateLines(board: Board, dir: EdgeDirection, iterator: (x: number, y: number, edge: Edge) => void) {
+  const w = board.getWidth() + 1, h = board.getHeight() + 1;
+  for (let i = 0; i < w * h; i++) {
+    const x = dir === 'Horizontal' ? i % w : Math.floor(i / h);
+    const y = dir === 'Horizontal' ? Math.floor(i / w) : i % h;
+    if (!board.isValidEdge(x, y, dir)) {
+      continue;
+    }
+    const edge = board.getEdge(x, y, dir);
+    iterator(x, y, edge);
+  }
+}
+
 export function drawBoard(ctx: CanvasRenderingContext2D, board: Board, scale: number): void {
   drawGridLayer(ctx, board, scale);
-  
-  for (let x = 0; x <= board.getWidth(); x++) {
-    for (let y = 0; y <= board.getHeight(); y++) {
-      ['Vertical', 'Horizontal'].forEach(dir => {
-        if (!board.isValidEdge(x, y, dir)) {
-          return;
-        }
-        const edge = board.getEdge(x, y, dir);
-        if (edge === 'Nothing') {
-          return;
-        } else if (edge === 'Blocking' || edge === 'Impassible') {
-          ctx.lineWidth = 4;
-          ctx.strokeStyle = '#ff0000';
-        } else if (edge === 'Wall') {
-          ctx.lineWidth = 5;
-          ctx.strokeStyle = '#000000';
-        } else if (edge === 'TileBoundary') {
-          ctx.lineWidth = 2;
-          ctx.strokeStyle = '#000000';
-        } else if (edge === 'CellBoundary') {
-          ctx.lineWidth = 2;
-          ctx.strokeStyle = '#7f7f7f';
-        } else if (edge === 'Difficult') {
-          ctx.lineWidth = 4;
-          ctx.strokeStyle = '#4f81bd';
-        }
 
-        const xdir = dir === 'Horizontal' ? 1 : 0;
-        const ydir = dir === 'Vertical' ? 1 : 0;
+  const EDGE_ORDER: Array<Edge> = ['CellBoundary', 'TileBoundary', 'Difficult', 'Impassible', 'Blocking', 'Wall'];
 
-        ctx.beginPath();
-        if (edge === 'Impassible') {
-          ctx.moveTo(scale * x, scale * y);
-          ctx.lineTo(scale * (x + xdir * 1 / 6), scale * (y + ydir * 1 / 6));
-
-          ctx.moveTo(scale * (x + xdir * 2 / 6), scale * (y + ydir * 2 / 6));
-          ctx.lineTo(scale * (x + xdir * 4 / 6), scale * (y + ydir * 4 / 6));
-          ctx.moveTo(scale * (x + xdir * 5 / 6), scale * (y + ydir * 5 / 6));
-          ctx.lineTo(scale * (x + xdir * 6 / 6), scale * (y + ydir * 6 / 6));
-        } else if (edge === 'CellBoundary') {
-          const N_DOTS = 5;
-          for (let i = 0; i < N_DOTS; i++) {
-            ctx.moveTo(
-              scale * (x + xdir * i / N_DOTS),
-              scale * (y + ydir * i / N_DOTS),
-            );
-            ctx.lineTo(
-              scale * (x + xdir * (i + 0.5) / N_DOTS),
-              scale * (y + ydir * (i + 0.5) / N_DOTS),
-            );
-          }
-        } else {
-          ctx.moveTo(scale * x, scale * y);
-          ctx.lineTo(scale * (x + xdir), scale * (y + ydir));
-        }
-        ctx.stroke();
-      });
+  EDGE_ORDER.forEach(targetEdge => {
+    ctx.setLineDash([]);
+    ctx.lineDashOffset = 0;
+    let lineOffset = 0;
+    if (targetEdge === 'Blocking') {
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#ff0000';
+      lineOffset = 2;
+    } else if (targetEdge === 'Impassible') {
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#ff0000';
+      ctx.setLineDash([scale / 3, scale / 6]);
+      ctx.lineDashOffset = scale / 6;
+      lineOffset = 2;
+    } else if (targetEdge === 'Wall') {
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = '#000000';
+      lineOffset = 2;
+    } else if (targetEdge === 'TileBoundary') {
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#000000';
+    } else if (targetEdge === 'CellBoundary') {
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#7f7f7f';
+      ctx.setLineDash([scale / 10]);
+      ctx.lineDashOffset = scale / 20;
+    } else if (targetEdge === 'Difficult') {
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#4f81bd';
+      lineOffset = 2;
     }
-  }
+
+    ctx.beginPath();
+    ['Vertical', 'Horizontal'].forEach(dir => {
+      const [xdir, ydir] = dir === 'Horizontal' ? [1, 0] : [0, 1];
+      let startX: number | null = null;
+      let startY: number | null = null;
+      let lastX: number | null = null;
+      let lastY: number | null = null;
+      let memo: {x0: number, x1: number, y0: number, y1: number} | null = null;
+      iterateLines(board, dir, (x, y, edge) => {
+        // check for start of line
+        if (startX !== null && startY !== null) {
+
+          if ((dir === 'Horizontal' ? y !== startY : x !== startX) || edge !== targetEdge) {
+            //console.log(`Draw ${targetEdge} from ${startX}, ${startY} to ${x}, ${y}`);
+            ctx.moveTo(scale * startX - xdir * lineOffset, scale * startY - ydir * lineOffset);
+            ctx.lineTo(scale * lastX + xdir * lineOffset, scale * lastY + ydir * lineOffset);
+
+            startX = null;
+            startY = null;
+          } else {
+            lastX = x + xdir;
+            lastY = y + ydir;
+          }
+        }
+        if (startX === null && edge === targetEdge) {
+          // start new line
+          startX = x;
+          startY = y;
+          lastX = x + xdir;
+          lastY = y + ydir;
+        }
+      });
+      if (startX !== null && startY !== null) {
+        ctx.moveTo(scale * startX - lineOffset, scale * startY - lineOffset);
+        ctx.lineTo(scale * lastX + lineOffset, scale * lastY + lineOffset);
+      }
+    });
+    ctx.stroke();
+  });
 }
