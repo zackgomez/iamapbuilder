@@ -8,6 +8,8 @@ import fs from 'mz/fs';
 import readline from 'mz/readline';
 import {checkBoardTiles} from '../lib/BoardUtils';
 import {TileSets, MissionTypes, BriefingLocations} from '../lib/GameData';
+import {genMapIndex, genWriteMapIndex} from '../lib/MapIndex';
+import {filenameFromMapName} from '../lib/maps';
 
 type State = {
   filename: ?string,
@@ -101,9 +103,24 @@ async function handleLine(rl: readline, line: string): Promise<void> {
   } else if (line.startsWith('save')) {
     let filename: ?string = state.filename;
     if (!filename || filename.length === 0) {
+      filename = 'maps/' + filenameFromMapName(board.getName());
+      /*
       filename = await rl.question('Save as? ');
       if (!filename.endsWith('.json')) {
         filename = filename + '.json';
+      }
+      */
+      const mapIndex = await genMapIndex();
+      if (!mapIndex.find(i => i.title === nullthrows(board).getName())) {
+        const index = mapIndex.length;
+        mapIndex.push({
+          index,
+          title: board.getName(),
+          type: board.getMapType(),
+          location: board.getBriefingLocation(),
+        });
+        await genWriteMapIndex(mapIndex);
+        console.log('Added entry to map index at location', index);
       }
     }
     await fs.writeFile(filename, board.serialize());
