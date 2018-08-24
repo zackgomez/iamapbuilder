@@ -8,6 +8,7 @@ import classNames from 'classnames';
 import styles from './viewer.css';
 
 import index from '../../viewer_data.json';
+import GithubIcon from './github_icon.svg';
 
 type IndexItem = {
   index: number,
@@ -172,6 +173,10 @@ export default class MapViewerApp extends React.Component<Props, State> {
             className={styles.topNavSearch}
             onClick={this.onToggleMapList} />
           <h1 className={styles.topNavTitle}>Imperial Assault Tile Guide</h1>
+          <a className={styles.topNavLink} target="_blank" href="https://zackgomez.com/files/Campaign_Tile_Guide_v11.0.pdf">Download PDF</a>
+          <a className={styles.topNavLink} target="_blank" href="https://github.com/zackgomez/iamapbuilder">
+            <img src={GithubIcon} className={styles.githubIcon}/>
+          </a>
         </div>
         <div className={styles.panesContainer}>
           <div className={classNames(styles.leftPane, {[styles.leftPaneCollapsed]: !this.state.listExpanded})}>

@@ -29,10 +29,24 @@
   align-self: center;
 }
 
+.topNavLink {
+  flex: 0 0 auto;
+  padding: 0;
+  margin-left: 10;
+  margin-right: 5;
+  font-size: 1.5em;
+  color: #0066ff;
+  text-decoration: none;
+}
+
 .topNavSearch {
   background: url('./search_icon.svg');
   background-repeat: no-repeat;
   flex: 0 1 auto;
+  width: 30;
+}
+
+.githubIcon {
   width: 30;
 }
 
