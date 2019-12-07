@@ -5,9 +5,9 @@ import _ from 'lodash';
 import nullthrows from 'nullthrows';
 
 import Board from '../lib/board';
-import type {Cell, EdgeDirection, Edge} from '../lib/board';
-import {makeButton} from './UIUtils';
-import {checkBoardTiles} from '../lib/BoardUtils';
+import type { Cell, EdgeDirection, Edge } from '../lib/board';
+import { makeButton } from './UIUtils';
+import { checkBoardTiles } from '../lib/BoardUtils';
 import ApolloClient from 'apollo-boost';
 import gql from 'graphql-tag';
 
@@ -87,14 +87,18 @@ export class TerrainTool extends Tool {
     return 'Terrain';
   }
 
-  setCellIfPossible(board: Board, cellPosition: Point, cell: CellType): boolean {
+  setCellIfPossible(
+    board: Board,
+    cellPosition: Point,
+    cell: CellType,
+  ): boolean {
     if (!board.isValidCell(cellPosition.x, cellPosition.y)) {
       return false;
     }
 
     const existing = board.getCell(cellPosition.x, cellPosition.y);
 
-    let newCell = {...existing};
+    let newCell = { ...existing };
     newCell.inBounds = cell !== 'OutOfBounds';
     newCell.difficultTerrain = cell === 'Difficult';
 
@@ -102,7 +106,10 @@ export class TerrainTool extends Tool {
     return true;
   }
 
-  affectedEdgeFromEvent(event: any, context: ToolContext): ?[Point, EdgeDirection] {
+  affectedEdgeFromEvent(
+    event: any,
+    context: ToolContext,
+  ): ?[Point, EdgeDirection] {
     let x = event.data.global.x / context.SCALE;
     let y = event.data.global.y / context.SCALE;
     const cellX = Math.floor(x);
@@ -112,13 +119,13 @@ export class TerrainTool extends Tool {
 
     const THRESHOLD = 0.3;
 
-    const point = {x: cellX, y: cellY};
+    const point = { x: cellX, y: cellY };
 
     let candidates = [
-      [[{x: cellX, y: cellY}, 'Vertical'], xFrac], // Left
-      [[{x: cellX + 1, y: cellY}, 'Vertical'], 1 - xFrac], // Right
-      [[{x: cellX, y: cellY}, 'Horizontal'], yFrac], // Top
-      [[{x: cellX, y: cellY + 1}, 'Horizontal'], 1 - yFrac], // Bottom
+      [[{ x: cellX, y: cellY }, 'Vertical'], xFrac], // Left
+      [[{ x: cellX + 1, y: cellY }, 'Vertical'], 1 - xFrac], // Right
+      [[{ x: cellX, y: cellY }, 'Horizontal'], yFrac], // Top
+      [[{ x: cellX, y: cellY + 1 }, 'Horizontal'], 1 - yFrac], // Bottom
     ];
 
     candidates = candidates.sort(([a, distA], [b, distB]) => distA - distB);
@@ -210,7 +217,7 @@ export class TerrainTool extends Tool {
 
       case 'Edge':
         if (this.candidateEdge_) {
-          const [{x, y}, dir] = this.candidateEdge_;
+          const [{ x, y }, dir] = this.candidateEdge_;
           context.board.setEdge(x, y, dir, nullthrows(this.dragEdgeType_));
         }
         break;
@@ -276,6 +283,16 @@ export class TerrainTool extends Tool {
       return;
     }
     context.fetchMap(index);
+  }
+  onSearch(state: UIState, context: ToolContext): void {
+    const query = prompt('Map name?');
+    context.fetchIndexOfMap(query).then(index => {
+      if (index === null) {
+        // TODO alert
+        return;
+      }
+      context.fetchMap(index);
+    });
   }
   onNext(state: UIState, context: ToolContext): void {
     let index = this.getCurrentIndex(state);
@@ -408,6 +425,7 @@ export class TerrainTool extends Tool {
     const FILE_BUTTONS = [
       ['New', () => this.onNew(state, context)],
       ['Fetch', () => this.onFetch(state, context)],
+      ['Search', () => this.onSearch(state, context)],
       ['Put', () => this.onPut(state, context)],
       ['Prev', () => this.onPrev(state, context)],
       ['Next', () => this.onNext(state, context)],
@@ -428,7 +446,7 @@ export class TerrainTool extends Tool {
       y -= BUTTON_SIZE.height;
     });
 
-    const {board} = context;
+    const { board } = context;
     const candidateEdge = this.candidateEdge_;
     if (candidateEdge) {
       let edgeOverlay = new PIXI.Graphics();

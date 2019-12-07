@@ -1,15 +1,15 @@
 /* @flow */
 
-import type {MapIndexEntry} from '../lib/MapIndex';
+import type { MapIndexEntry } from '../lib/MapIndex';
 
-import {gql} from 'apollo-server';
+import { gql } from 'apollo-server';
 import nullthrows from 'nullthrows';
 
 import fs from 'mz/fs';
 import Board from '../lib/board';
-import {getCSSColorForMapType, getIndexLocation} from '../lib/BoardUtils';
-import {genMapIndex} from '../lib/MapIndex';
-import {filenameFromMapName, baseFilenameFromMapName} from '../lib/maps';
+import { getCSSColorForMapType, getIndexLocation } from '../lib/BoardUtils';
+import { genMapIndex } from '../lib/MapIndex';
+import { filenameFromMapName, baseFilenameFromMapName } from '../lib/maps';
 
 export const typeDefs = gql`
   type MapDefinition {
@@ -52,17 +52,16 @@ export const typeDefs = gql`
 
 export const resolvers = {
   Query: {
-    map: async (_: mixed, {index}: {index: number}) => {
+    map: async (_: mixed, { index }: { index: number }) => {
       const mapIndex = await genMapIndex();
       return mapIndex[index];
     },
     map_list: async (_: mixed) => {
       return await genMapIndex();
     },
-    map_search: async (_: mixed, {title}: {title: string}) => {
+    map_search: async (_: mixed, { title }: { title: string }) => {
       const mapIndex = await genMapIndex();
       const results = mapIndex.filter(entry => {
-        let matches
         return entry.title.match(title);
       });
       return {
@@ -86,11 +85,14 @@ export const resolvers = {
     },
   },
   Mutation: {
-    update_map: async (_: mixed, {index, data}: {index: number, data: string}) => {
+    update_map: async (
+      _: mixed,
+      { index, data }: { index: number, data: string },
+    ) => {
       const mapIndex = await genMapIndex();
       const indexItem = nullthrows(mapIndex[index]);
 
-      const filename =  filenameFromMapName(indexItem.title);
+      const filename = filenameFromMapName(indexItem.title);
       const path = 'maps/' + filename;
 
       const existingData = await fs.readFile(path);
@@ -114,10 +116,10 @@ export const resolvers = {
         },
       };
     },
-    create_map: async (_: mixed, {data}: {data: string}) => {
+    create_map: async (_: mixed, { data }: { data: string }) => {
       return {
         success: false,
-      }
+      };
     },
   },
 };

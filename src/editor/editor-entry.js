@@ -7,14 +7,12 @@ import _ from 'lodash';
 import ApolloClient from 'apollo-boost';
 import gql from 'graphql-tag';
 
-
-import type {ToolEnum, UIState, Tool, ToolContext} from './tools.js';
-import {getToolDefinitions} from './tools.js';
-import {makeButton, buttonizeText} from './UIUtils.js';
+import type { ToolEnum, UIState, Tool, ToolContext } from './tools.js';
+import { getToolDefinitions } from './tools.js';
+import { makeButton, buttonizeText } from './UIUtils.js';
 
 const VIEWPORT_WIDTH = 1440;
 const VIEWPORT_HEIGHT = 800;
-
 
 let apolloClient = new ApolloClient({
   uri: 'http://localhost:3000/graphql',
@@ -112,12 +110,27 @@ export function makeEdgeLayer(board: Board, scale: number): any {
 
         if (edge === 'Impassible') {
           edgeGraphics.moveTo(scale * x, scale * y);
-          edgeGraphics.lineTo(scale * (x + xdir * 1 / 6), scale * (y + ydir * 1 / 6));
+          edgeGraphics.lineTo(
+            scale * (x + xdir * 1 / 6),
+            scale * (y + ydir * 1 / 6),
+          );
 
-          edgeGraphics.moveTo(scale * (x + xdir * 2 / 6), scale * (y + ydir * 2 / 6));
-          edgeGraphics.lineTo(scale * (x + xdir * 4 / 6), scale * (y + ydir * 4 / 6));
-          edgeGraphics.moveTo(scale * (x + xdir * 5 / 6), scale * (y + ydir * 5 / 6));
-          edgeGraphics.lineTo(scale * (x + xdir * 6 / 6), scale * (y + ydir * 6 / 6));
+          edgeGraphics.moveTo(
+            scale * (x + xdir * 2 / 6),
+            scale * (y + ydir * 2 / 6),
+          );
+          edgeGraphics.lineTo(
+            scale * (x + xdir * 4 / 6),
+            scale * (y + ydir * 4 / 6),
+          );
+          edgeGraphics.moveTo(
+            scale * (x + xdir * 5 / 6),
+            scale * (y + ydir * 5 / 6),
+          );
+          edgeGraphics.lineTo(
+            scale * (x + xdir * 6 / 6),
+            scale * (y + ydir * 6 / 6),
+          );
           return;
         }
         if (edge === 'CellBoundary') {
@@ -147,7 +160,7 @@ export function makeEdgeLayer(board: Board, scale: number): any {
 let stage = null;
 function render() {
   if (stage) {
-    stage.destroy({children: true});
+    stage.destroy({ children: true });
     stage = null;
   }
   uiState.needsRender = false;
@@ -187,7 +200,6 @@ function render() {
   renderer.render(root);
 }
 
-
 const FetchMapQuery = gql`
   query FetchMap($index: Int!) {
     map(index: $index) {
@@ -200,7 +212,7 @@ function fetchMap(index: number): void {
   apolloClient
     .query({
       query: FetchMapQuery,
-      variables: {index},
+      variables: { index },
     })
     .then(result => {
       return result.data.map.data;
@@ -211,6 +223,42 @@ function fetchMap(index: number): void {
       setIndex(index);
     })
     .catch(e => console.error(e));
+}
+
+const SearchMapQuery = gql`
+  query FetchMap($query: String!) {
+    map_search(title: $query) {
+      results {
+        index
+        title
+      }
+    }
+  }
+`;
+
+function fetchIndexOfMap(query: string): Promise<?number> {
+  return apolloClient
+    .query({
+      query: SearchMapQuery,
+      variables: { query },
+    })
+    .then(result => {
+      console.log(result);
+      const search_results = result.data.map_search.results;
+      if (search_results.length > 0) {
+        return search_results[0].index;
+      }
+      return null;
+    });
+  /*
+      return result.data.map.data;
+    })
+    .then(data => {
+      const board = Board.fromSerialized(data);
+      setBoard(board);
+      setIndex(index);
+    })
+    */
 }
 
 function getToolContext(): ToolContext {
@@ -228,6 +276,7 @@ function getToolContext(): ToolContext {
     cellPositionFromEvent,
     setBoard,
     fetchMap,
+    fetchIndexOfMap,
     apollo: apolloClient,
   };
 }
