@@ -1,0 +1,11 @@
+# This repo is a static map generator. Nothing here is served: the graphql
+# server is localhost-only for map editing, the CLI talks to Google Sheets,
+# and the build output is a static viewer-site/ directory. Dependency updates
+# are handled by hand when the toolchain is touched, not automatically.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 0
